@@ -4,6 +4,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TripMate.Core", "TripMate.Core\TripMate.Core.csproj", "{B574CDCC-74B6-4A3B-A52F-4F4AF8837696}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TripMate.UnitTests", "TripMate.UnitTests\TripMate.UnitTests.csproj", "{B4FCF388-D54C-4D01-A7ED-AEFEF6954D01}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,5 +19,9 @@ Global
 		{B574CDCC-74B6-4A3B-A52F-4F4AF8837696}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B574CDCC-74B6-4A3B-A52F-4F4AF8837696}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B574CDCC-74B6-4A3B-A52F-4F4AF8837696}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4FCF388-D54C-4D01-A7ED-AEFEF6954D01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4FCF388-D54C-4D01-A7ED-AEFEF6954D01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4FCF388-D54C-4D01-A7ED-AEFEF6954D01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4FCF388-D54C-4D01-A7ED-AEFEF6954D01}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
