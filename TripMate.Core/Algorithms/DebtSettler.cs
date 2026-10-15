@@ -79,5 +79,44 @@ namespace TripMate.Core.Algorithms
                         select new { From = s.Member!.Name, To = e.PaidBy!.Name };
             return pairs.Distinct().Count();
         }
+
+        // Method to produce the settle-up plan (greedy rule for now)
+        public List<Transfer> Settle(IDictionary<string, decimal> balances)
+        {
+            return GreedySettle(balances);
+        }
+
+        // Greedy settle-up on its own (used for comparison and for very large groups)
+        public List<Transfer> GreedySettle(IDictionary<string, decimal> balances)
+        {
+            List<string> names = balances.Keys.ToList();
+            List<long> cents = balances.Values.Select(v => (long)Math.Round(v * 100, MidpointRounding.AwayFromZero)).ToList();
+            return GreedySettle(names, cents);
+        }
+
+        // Greedy rule: the person who owes the most pays the person who is owed the most,
+        // as much as possible, until everyone is square
+        private List<Transfer> GreedySettle(List<string> names, List<long> cents)
+        {
+            List<Transfer> transfers = new List<Transfer>();
+            long[] remaining = cents.ToArray();
+
+            while (true)
+            {
+                int creditor = 0, debtor = 0;
+                for (int i = 1; i < remaining.Length; i++)
+                {
+                    if (remaining[i] > remaining[creditor]) creditor = i;
+                    if (remaining[i] < remaining[debtor]) debtor = i;
+                }
+                if (remaining.Length == 0 || remaining[creditor] <= 0) break;
+
+                long amount = Math.Min(remaining[creditor], -remaining[debtor]);
+                transfers.Add(new Transfer { From = names[debtor], To = names[creditor], Amount = amount / 100m });
+                remaining[creditor] -= amount;
+                remaining[debtor] += amount;
+            }
+            return transfers;
+        }
     }
 }
