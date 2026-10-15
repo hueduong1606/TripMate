@@ -34,6 +34,18 @@
                         <ColumnDefinition Width="350"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
+                    <GroupBox Header="Travellers">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Bottom">
+                                <TextBox x:Name="memberNameTextBox"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button x:Name="addMemberButton" Content="Add" Click="addMemberButton_Click"/>
+                                    <Button x:Name="removeMemberButton" Content="Remove selected" Click="removeMemberButton_Click"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <ListBox x:Name="membersListBox" FontSize="14"/>
+                        </DockPanel>
+                    </GroupBox>
 
                     <GroupBox Grid.Column="1" Header="Trip overview">
                         <StackPanel>

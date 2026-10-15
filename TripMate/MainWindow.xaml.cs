@@ -58,6 +58,8 @@ namespace TripMate
             // Register the Group tab's refresh methods with the delegate using "+="
             refreshTripViews = new RefreshHandler(ShowOverview);
 
+            refreshTripViews += ShowMembers;
+
             // Let every other tab set itself up and register its own methods
             SetupItineraryTab();
             SetupExpensesTab();
@@ -236,5 +238,70 @@ namespace TripMate
         // ============================================================
         // Group
         // ============================================================
+
+        // Method to show the travellers of the current trip on the Group tab
+        private void ShowMembers()
+        {
+            if (currentTrip == null) return;
+
+            List<Member> members = currentTrip.Members.OrderBy(m => m.Name).ToList();
+            membersListBox.ItemsSource = members;
+        }
+
+        // Add a traveller to the trip, after checking the name
+        private void addMemberButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (currentTrip == null) return;
+
+            string name = memberNameTextBox.Text.Trim();
+            if (name == "")
+            {
+                MessageBox.Show("Please type a name.", "TripMate");
+                return;
+            }
+            // Names must be unique within a trip, because the settle-up uses them
+            if (currentTrip.Members.Any(m => m.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+            {
+                MessageBox.Show(name + " is already on this trip.", "TripMate");
+                return;
+            }
+
+            using (var context = new Context())
+            {
+                context.Members.Add(new Member { Name = name, TripId = currentTrip.TripId });
+                context.SaveChanges();
+            }
+            memberNameTextBox.Clear();
+            ReloadCurrentTrip();
+            SetStatus(name + " joined the trip");
+        }
+
+        // Remove the selected traveller, unless they are part of an expense
+        private void removeMemberButton_Click(object sender, RoutedEventArgs e)
+        {
+            Member? member = membersListBox.SelectedItem as Member;
+            if (member == null) return;
+
+            using (var context = new Context())
+            {
+                // Don't remove someone who is part of an expense, or the balances would be wrong
+                bool hasExpenses = context.Expenses.Any(x => x.PaidById == member.MemberId) ||
+                                   context.ExpenseShares.Any(s => s.MemberId == member.MemberId);
+                if (hasExpenses)
+                {
+                    MessageBox.Show(member.Name + " is part of some expenses. Delete those expenses first.", "TripMate");
+                    return;
+                }
+
+                Member? toRemove = context.Members.Find(member.MemberId);
+                if (toRemove != null)
+                {
+                    context.Members.Remove(toRemove);
+                    context.SaveChanges();
+                }
+            }
+            ReloadCurrentTrip();
+            SetStatus(member.Name + " removed");
+        }
     }
 }
