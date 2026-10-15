@@ -45,5 +45,39 @@ namespace TripMate.Core.Algorithms
             }
             return shares;
         }
+
+        // Method to work out each member's balance from the trip's expenses
+        public static Dictionary<string, decimal> CalculateBalances(IEnumerable<Member> members, IEnumerable<Expense> expenses)
+        {
+            Dictionary<string, decimal> balances = new Dictionary<string, decimal>();
+            foreach (Member m in members)
+            {
+                balances[m.Name] = 0m;
+            }
+
+            foreach (Expense e in expenses)
+            {
+                // The payer gets back the full amount...
+                if (e.PaidBy != null) balances[e.PaidBy.Name] += e.Amount;
+
+                // ...and everyone who shared it owes their share
+                foreach (ExpenseShare s in e.Shares)
+                {
+                    if (s.Member != null) balances[s.Member.Name] -= s.ShareAmount;
+                }
+            }
+            return balances;
+        }
+
+        // Method to count how many transfers it would take if everyone paid back
+        // each payer separately (the "naive" way), to compare with the optimised plan
+        public static int CountNaiveTransfers(IEnumerable<Expense> expenses)
+        {
+            var pairs = from e in expenses
+                        from s in e.Shares
+                        where s.Member != null && e.PaidBy != null && s.Member.Name != e.PaidBy.Name
+                        select new { From = s.Member!.Name, To = e.PaidBy!.Name };
+            return pairs.Distinct().Count();
+        }
     }
 }
