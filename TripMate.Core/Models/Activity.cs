@@ -18,7 +18,7 @@ namespace TripMate.Core.Models
         public double? Longitude { get; set; }
 
         public int TripId { get; set; }
-
+        public Trip? Trip { get; set; }
         // An activity can only be routed if it has coordinates
         [NotMapped]
         public bool HasLocation

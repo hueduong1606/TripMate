@@ -8,6 +8,7 @@
 
         // Foreign key and navigation property back to the Trip
         public int TripId { get; set; }
+        public Trip? Trip { get; set; }
 
         // Override the ToString() method so lists show the member's name
         public override string ToString()
