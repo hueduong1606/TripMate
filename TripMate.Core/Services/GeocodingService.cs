@@ -19,7 +19,7 @@ namespace TripMate.Core.Services
         }
     }
 
-    public class GeocodingService
+    public class GeocodingService : IGeocodingService
     {
         // Method to find a city (trip destination) using the Open-Meteo geocoding API
         // e.g. https://geocoding-api.open-meteo.com/v1/search?name=Tokyo&count=1
