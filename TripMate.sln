@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TripMate.Core", "TripMate.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TripMate.UnitTests", "TripMate.UnitTests\TripMate.UnitTests.csproj", "{B4FCF388-D54C-4D01-A7ED-AEFEF6954D01}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TripMate", "TripMate\TripMate.csproj", "{4596BC37-B782-4659-BBE3-0A3CA641D70C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,5 +25,9 @@ Global
 		{B4FCF388-D54C-4D01-A7ED-AEFEF6954D01}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B4FCF388-D54C-4D01-A7ED-AEFEF6954D01}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B4FCF388-D54C-4D01-A7ED-AEFEF6954D01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4596BC37-B782-4659-BBE3-0A3CA641D70C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4596BC37-B782-4659-BBE3-0A3CA641D70C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4596BC37-B782-4659-BBE3-0A3CA641D70C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4596BC37-B782-4659-BBE3-0A3CA641D70C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
