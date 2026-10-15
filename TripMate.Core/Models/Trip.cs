@@ -1,9 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TripMate.Core.Models
 {
     public class Trip
     {
+        // Category used for "X paid Y back" payments recorded from the Settle Up window.
+        // They change the balances but are not spending, so charts and totals leave them out.
+        public const string SettlementCategory = "Settlement";
+
         public Trip()
         {
             Members = new List<Member>();
@@ -32,6 +36,13 @@ namespace TripMate.Core.Models
         public IList<Member> Members { get; set; }
         public IList<Activity> Activities { get; set; }
         public IList<Expense> Expenses { get; set; }
+
+        // Real spending only, without settle-up payments (LINQ with a lambda expression)
+        [NotMapped]
+        public List<Expense> SpendingExpenses
+        {
+            get { return Expenses.Where(e => e.Category != SettlementCategory).ToList(); }
+        }
 
         // Number of days in the trip, including the first and last day
         [NotMapped]
