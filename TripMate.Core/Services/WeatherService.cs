@@ -59,7 +59,7 @@ namespace TripMate.Core.Services
         public static string Describe(int code)
         {
             if (code == 0) return "Clear sky";
-            if (code <= 2) return "Partly cloudy";
+            if (code == 1 || code == 2) return "Partly cloudy";
             if (code == 3) return "Overcast";
             if (code == 45 || code == 48) return "Fog";
             if (code >= 51 && code <= 57) return "Drizzle";
