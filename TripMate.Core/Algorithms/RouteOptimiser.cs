@@ -5,6 +5,7 @@
  The first stop (e.g. the hostel) stays where it is, and the rest of the stops
  are re-ordered to reduce the total travel distance:
    1. Nearest neighbour - always walk to the closest stop not yet visited
+   2. 2-opt - keep reversing parts of the route while that makes it shorter
 */
 
 namespace TripMate.Core.Algorithms
@@ -66,6 +67,9 @@ namespace TripMate.Core.Algorithms
             // Step 1: build a good first route with nearest neighbour
             List<T> route = NearestNeighbour(located);
 
+            // Step 2: improve it with 2-opt
+            route = TwoOpt(route);
+
             // Never return a route that is worse than what the user already had
             if (RouteLength(route) > result.OriginalDistanceKm)
             {
@@ -126,6 +130,42 @@ namespace TripMate.Core.Algorithms
                 route.Add(next);
                 remaining.Remove(next);
                 current = next;
+            }
+            return route;
+        }
+
+        // 2-opt: try reversing every section of the route (except the first stop).
+        // If the reversed route is shorter, keep it, and repeat until nothing improves.
+        public List<T> TwoOpt<T>(IList<T> stops) where T : IGeoLocated
+        {
+            List<T> route = new List<T>(stops);
+            int n = route.Count;
+            bool improved = true;
+
+            while (improved)
+            {
+                improved = false;
+                for (int i = 1; i < n - 1; i++)
+                {
+                    for (int k = i + 1; k < n; k++)
+                    {
+                        // Distance change if the stops from i to k are visited in reverse:
+                        // edge (i-1, i) becomes (i-1, k) and edge (k, k+1) becomes (i, k+1)
+                        double before = distance(route[i - 1], route[i]);
+                        double after = distance(route[i - 1], route[k]);
+                        if (k < n - 1)
+                        {
+                            before += distance(route[k], route[k + 1]);
+                            after += distance(route[i], route[k + 1]);
+                        }
+
+                        if (after < before - 1e-9)
+                        {
+                            route.Reverse(i, k - i + 1);
+                            improved = true;
+                        }
+                    }
+                }
             }
             return route;
         }
