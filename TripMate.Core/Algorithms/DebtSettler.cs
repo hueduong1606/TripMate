@@ -85,9 +85,31 @@ namespace TripMate.Core.Algorithms
         {
             var pairs = from e in expenses
                         from s in e.Shares
+                        where e.Category != Trip.SettlementCategory
                         where s.Member != null && e.PaidBy != null && s.Member.Name != e.PaidBy.Name
                         select new { From = s.Member!.Name, To = e.PaidBy!.Name };
             return pairs.Distinct().Count();
+        }
+
+        // Method to record a settle-up payment as a special expense:
+        // "from" pays the whole amount, and "to" has a share of the whole amount.
+        // This raises the payer's balance and lowers the receiver's balance by the same amount.
+        public static Expense CreateSettlementPayment(int tripId, Member from, Member to, decimal amount, string currency)
+        {
+            Expense payment = new Expense
+            {
+                Description = from.Name + " paid " + to.Name + " back",
+                Category = Trip.SettlementCategory,
+                Amount = amount,
+                OriginalAmount = amount,
+                OriginalCurrency = currency,
+                Date = DateTime.Today,
+                PaidById = from.MemberId,
+                PaidBy = from,
+                TripId = tripId
+            };
+            payment.Shares.Add(new ExpenseShare { MemberId = to.MemberId, Member = to, ShareAmount = amount });
+            return payment;
         }
 
         // Method to produce the settle-up plan with the fewest transfers
