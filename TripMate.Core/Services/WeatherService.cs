@@ -17,7 +17,7 @@ namespace TripMate.Core.Services
         }
     }
 
-    public class WeatherService
+    public class WeatherService : IWeatherService
     {
         // Method to get the daily forecast from Open-Meteo (free, no API key, up to 16 days)
         public async Task<List<WeatherDay>> GetForecastAsync(double latitude, double longitude, int days)
