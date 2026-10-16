@@ -14,6 +14,10 @@ namespace TripMate
     public partial class MainWindow
     {
         private readonly IWeatherService weatherService = new WeatherService();
+        private readonly IAttractionService attractionService = new AttractionService();
+
+        // Attraction search results
+        private List<Attraction> attractions = new List<Attraction>();
 
         // Called from the MainWindow constructor
         partial void SetupExploreTab()
@@ -26,6 +30,8 @@ namespace TripMate
         {
             weatherDataGrid.ItemsSource = null;
             weatherInfoText.Text = "";
+            attractionsListBox.ItemsSource = null;
+            attractionInfoText.Text = "";
         }
 
         // Method to make sure the trip has coordinates; looks up the destination if needed
@@ -87,6 +93,35 @@ namespace TripMate
             finally
             {
                 weatherButton.IsEnabled = true;
+            }
+        }
+
+        // Search for attractions near the destination within the chosen radius
+        private async void searchAttractionsButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (currentTrip == null) return;
+
+            try
+            {
+                searchAttractionsButton.IsEnabled = false;
+                SetStatus("Searching for things to see...");
+                if (!await EnsureDestinationLocationAsync()) return;
+
+                int radiusKm = (int)radiusSlider.Value;
+                attractions = await attractionService.SearchNearbyAsync(currentTrip.Latitude!.Value, currentTrip.Longitude!.Value, radiusKm);
+
+                attractionsListBox.ItemsSource = attractions;
+                attractionInfoText.Text = attractions.Count + " places found.";
+                SetStatus("Attraction search finished");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Could not search for attractions: " + ex.Message, "TripMate");
+                SetStatus("Attraction search unavailable");
+            }
+            finally
+            {
+                searchAttractionsButton.IsEnabled = true;
             }
         }
     }
