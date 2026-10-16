@@ -165,8 +165,22 @@ namespace TripMate
                 }
                 LoadTrips(window.NewTrip.TripId);
                 SetStatus("Created " + window.NewTrip.Name);
+
             }
         }
+        // Add the ready-made Tokyo trip, useful for a demo
+        private void sampleTripButton_Click(object sender, RoutedEventArgs e)
+        {
+            Trip sample = DataSeeder.CreateSampleTrip();
+            using (var context = new Context())
+            {
+                context.Trips.Add(sample);
+                context.SaveChanges();
+            }
+            LoadTrips(sample.TripId);
+            SetStatus("Sample trip added. Try Optimise Route on day 1 and Settle Up on the Expenses tab.");
+        }
+
 
         // Delete the current trip after asking the user to confirm
         private void deleteTripButton_Click(object sender, RoutedEventArgs e)
