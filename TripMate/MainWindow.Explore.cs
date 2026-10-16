@@ -22,7 +22,20 @@ namespace TripMate
         // Called from the MainWindow constructor
         partial void SetupExploreTab()
         {
+            refreshTripViews += ShowExploreDays;
             tripSelected += ClearExploreResults;
+        }
+
+        // Fill the "add to day" list with the trip's days
+        private void ShowExploreDays()
+        {
+            if (currentTrip == null) return;
+
+            TripDay? previousDay = attractionDayComboBox.SelectedItem as TripDay;
+            int selectedDay = previousDay != null ? previousDay.DayNumber : 1;
+            List<TripDay> days = currentTrip.GetDays();
+            attractionDayComboBox.ItemsSource = days;
+            attractionDayComboBox.SelectedItem = days.FirstOrDefault(d => d.DayNumber == selectedDay) ?? days[0];
         }
 
         // Clear the results from the previous trip
@@ -129,7 +142,7 @@ namespace TripMate
                     .ToList();
 
                 attractionsListBox.ItemsSource = attractions;
-                attractionInfoText.Text = attractions.Count + " places found.";
+                attractionInfoText.Text = attractions.Count + " places found. Select one and add it to a day, or double-click to read more.";
                 SetStatus("Attraction search finished");
             }
             catch (Exception ex)
@@ -140,6 +153,37 @@ namespace TripMate
             finally
             {
                 searchAttractionsButton.IsEnabled = true;
+            }
+        }
+
+        // Add the selected attraction to the chosen day of the itinerary
+        private void addAttractionButton_Click(object sender, RoutedEventArgs e)
+        {
+            Attraction? attraction = attractionsListBox.SelectedItem as Attraction;
+            if (attraction == null)
+            {
+                MessageBox.Show("Select a place first.", "TripMate");
+                return;
+            }
+            TripDay? day = attractionDayComboBox.SelectedItem as TripDay;
+            if (day == null) return;
+
+            AddActivity(attraction.Name, day.DayNumber, 60, attraction.Latitude, attraction.Longitude, "From attraction search");
+        }
+
+        // Open the Wikipedia page in the default browser (like OpenUrl in the Week 10 tutorial)
+        private void openAttractionButton_Click(object sender, RoutedEventArgs e)
+        {
+            Attraction? attraction = attractionsListBox.SelectedItem as Attraction;
+            if (attraction == null) return;
+
+            try
+            {
+                Process.Start(new ProcessStartInfo(attraction.Url) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Could not open the browser: " + ex.Message, "TripMate");
             }
         }
     }
