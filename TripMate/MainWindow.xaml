@@ -215,6 +215,28 @@
                         </Grid>
                     </GroupBox>
 
+                    <GroupBox Grid.Row="1" Grid.Column="1" Header="Settle up">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                <Button x:Name="settleButton" Content="Settle Up" Style="{StaticResource PrimaryButton}" Click="settleButton_Click"/>
+                            </StackPanel>
+                            <TextBlock DockPanel.Dock="Top" x:Name="settleSummaryText" TextWrapping="Wrap" Margin="4"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <DockPanel Margin="2">
+                                    <TextBlock DockPanel.Dock="Top" Text="Balances" FontWeight="SemiBold"/>
+                                    <ListBox x:Name="balancesListBox"/>
+                                </DockPanel>
+                                <DockPanel Grid.Column="1" Margin="2">
+                                    <TextBlock DockPanel.Dock="Top" Text="Transfers" FontWeight="SemiBold"/>
+                                    <ListBox x:Name="transfersListBox"/>
+                                </DockPanel>
+                            </Grid>
+                        </DockPanel>
+                    </GroupBox>
                 </Grid>
             </TabItem>
 

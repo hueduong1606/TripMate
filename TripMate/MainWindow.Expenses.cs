@@ -14,6 +14,7 @@ namespace TripMate
 {
     public partial class MainWindow
     {
+        private readonly DebtSettler debtSettler = new DebtSettler();
         private readonly ICurrencyService currencyService = new CurrencyService();
 
         // Expense categories, used by the ComboBox and the pie chart
@@ -27,12 +28,23 @@ namespace TripMate
             expenseDatePicker.SelectedDate = DateTime.Today;
 
             refreshTripViews += ShowExpenses;
+            tripSelected += ClearSettlement;
+        }
+
+        // Clear the settle-up results from the previous trip
+        private void ClearSettlement()
+        {
+            transfersListBox.ItemsSource = null;
+            settleSummaryText.Text = "";
         }
 
         // Method to show the expenses of the current trip in the data grid
         private void ShowExpenses()
         {
             if (currentTrip == null) return;
+
+            // Expense changes invalidate the previously calculated transfer plan.
+            ClearSettlement();
 
             // Who can pay and who can share an expense
             List<Member> members = currentTrip.Members.OrderBy(x => x.Name).ToList();
@@ -52,6 +64,20 @@ namespace TripMate
             currencies.AddRange(CurrencyService.SupportedCurrencies.Where(c => !currencies.Contains(c)));
             expenseCurrencyComboBox.ItemsSource = currencies;
             expenseCurrencyComboBox.SelectedIndex = currentTrip.LocalCurrency != currentTrip.HomeCurrency ? 1 : 0;
+
+            ShowBalances();
+        }
+
+        // Method to show what each person is owed (+) or owes (-)
+        private void ShowBalances()
+        {
+            if (currentTrip == null) return;
+
+            Dictionary<string, decimal> balances = DebtSettler.CalculateBalances(currentTrip.Members, currentTrip.Expenses);
+            balancesListBox.ItemsSource = balances
+                .OrderByDescending(b => b.Value)
+                .Select(b => b.Key + ": " + (b.Value > 0 ? "is owed " + Money(b.Value) : b.Value < 0 ? "owes " + Money(-b.Value) : "square"))
+                .ToList();
         }
 
         // Tick every traveller in the "split between" list
@@ -159,8 +185,38 @@ namespace TripMate
                     context.SaveChanges();
                 }
             }
+            transfersListBox.ItemsSource = null;
+            settleSummaryText.Text = "";
             ReloadCurrentTrip();
             SetStatus(selected.Description + " deleted");
+        }
+
+        // Method to work out who pays whom, with the fewest transfers
+        private void settleButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (currentTrip == null) return;
+            if (currentTrip.Expenses.Count == 0)
+            {
+                settleSummaryText.Text = "No expenses yet, so nobody owes anything.";
+                transfersListBox.ItemsSource = null;
+                return;
+            }
+
+            Dictionary<string, decimal> balances = DebtSettler.CalculateBalances(currentTrip.Members, currentTrip.Expenses);
+            List<Transfer> transfers = debtSettler.Settle(balances);
+            transfersListBox.ItemsSource = transfers.Select(t => t.From + " -> " + t.To + ": " + Money(t.Amount)).ToList();
+
+            if (transfers.Count == 0)
+            {
+                settleSummaryText.Text = "Everyone is already square!";
+                return;
+            }
+
+            // Compare with paying everyone back expense by expense
+            int naive = DebtSettler.CountNaiveTransfers(currentTrip.Expenses);
+            settleSummaryText.Text = transfers.Count + " transfer" + (transfers.Count == 1 ? "" : "s") + " settle everyone up" +
+                                     (naive > transfers.Count ? " (paying each person back separately would take " + naive + ")." : ".");
+            SetStatus("Settle-up plan ready");
         }
     }
 }
