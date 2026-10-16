@@ -138,7 +138,39 @@
 
             <!-- Expenses tab: Person C adds it on day 16 -->
 
-            <!-- Explore tab: Person B adds it on day 17 -->
+            <!-- ===================== EXPLORE ===================== -->
+            <TabItem Header="Explore">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <GroupBox Header="Weather forecast (Open-Meteo)">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                <Button x:Name="weatherButton" Content="Get Forecast" Click="weatherButton_Click"/>
+                                <TextBlock x:Name="weatherInfoText" VerticalAlignment="Center" Margin="6,0" Foreground="Gray"/>
+                            </StackPanel>
+                            <DataGrid x:Name="weatherDataGrid" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='ddd dd MMM'}" Width="100"/>
+                                    <DataGridTextColumn Header="Conditions" Binding="{Binding Conditions}" Width="*"/>
+                                    <DataGridTextColumn Header="Min °C" Binding="{Binding MinTemp, StringFormat=0}" Width="60"/>
+                                    <DataGridTextColumn Header="Max °C" Binding="{Binding MaxTemp, StringFormat=0}" Width="60"/>
+                                    <DataGridTextColumn Header="Rain" Binding="{Binding RainText}" Width="60"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </GroupBox>
+
+                    <!-- Currency converter: Person C adds it on day 18 -->
+                </Grid>
+            </TabItem>
 
             <!-- Insights tab: Person C adds it on day 17 -->
         </TabControl>
