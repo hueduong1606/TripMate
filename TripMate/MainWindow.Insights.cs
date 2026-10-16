@@ -50,7 +50,7 @@ namespace TripMate
 
             // 1. Pie chart: spending by category (LINQ GroupBy, like the Week 7 file extension example)
             PlotModel categoryModel = new PlotModel();
-            PieSeries pie = new PieSeries { StrokeThickness = 1, InsideLabelPosition = 0.6, AngleSpan = 360, StartAngle = -90 };
+            PieSeries pie = new PieSeries { StrokeThickness = 1, InsideLabelPosition = 0.7, InsideLabelFormat = "{2:0}%", OutsideLabelFormat = null, AngleSpan = 360, StartAngle = -90 };
             var byCategory = currentTrip.SpendingExpenses
                 .GroupBy(x => x.Category)
                 .Select(g => new { Category = g.Key, Total = g.Sum(x => x.Amount) })
@@ -60,6 +60,11 @@ namespace TripMate
                 pie.Slices.Add(new PieSlice(c.Category, (double)c.Total));
             }
             categoryModel.Series.Add(pie);
+            // Keep category names outside small slices so their labels cannot overlap.
+            double categoryTotal = pie.Slices.Sum(s => s.Value);
+            categoryLegendText.Text = categoryTotal > 0
+                ? string.Join("\n", pie.Slices.Select(s => s.Label + " (" + (s.Value / categoryTotal * 100).ToString("0") + "%)"))
+                : "";
             if (pie.Slices.Count == 0) categoryModel.Title = "No expenses yet";
             categoryPlot.Model = categoryModel;
 
@@ -87,7 +92,7 @@ namespace TripMate
             // 3. Spending per day of the trip, plus the running total
             PlotModel dailyModel = new PlotModel();
             dailyModel.Legends.Add(new Legend { LegendPosition = LegendPosition.TopLeft });
-            dailyModel.Axes.Add(new DateTimeAxis { Position = AxisPosition.Bottom, StringFormat = "dd MMM", IntervalType = DateTimeIntervalType.Days, MinorIntervalType = DateTimeIntervalType.Days });
+            dailyModel.Axes.Add(new DateTimeAxis { Position = AxisPosition.Bottom, StringFormat = "dd MMM", IntervalType = DateTimeIntervalType.Days, MinorIntervalType = DateTimeIntervalType.Days, MinimumMajorStep = 1, MinimumPadding = 0.08, MaximumPadding = 0.08 });
             dailyModel.Axes.Add(new LinearAxis { Position = AxisPosition.Left, Minimum = 0, Title = currentTrip.HomeCurrency });
 
             LinearBarSeries dailySeries = new LinearBarSeries { Title = "Spent that day", BarWidth = 20 };
