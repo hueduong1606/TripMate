@@ -60,7 +60,39 @@
                 </Grid>
             </TabItem>
 
-            <!-- Itinerary tab: Person B adds it on day 16 -->
+            <!-- ===================== ITINERARY ===================== -->
+            <TabItem Header="Itinerary">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="360"/>
+                    </Grid.ColumnDefinitions>
+
+                    <GroupBox Header="Day plan">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                <Label Content="Day:"/>
+                                <ComboBox x:Name="dayComboBox" Width="200" SelectionChanged="dayComboBox_SelectionChanged"/>
+                            </StackPanel>
+
+                            <!-- Route optimisation -->
+
+                            <ListView x:Name="activitiesListView">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="#" Width="40" DisplayMemberBinding="{Binding Order}"/>
+                                        <GridViewColumn Header="Activity" Width="260" DisplayMemberBinding="{Binding Name}"/>
+                                        <GridViewColumn Header="Minutes" Width="70" DisplayMemberBinding="{Binding DurationMinutes}"/>
+                                        <GridViewColumn Header="Location" Width="150" DisplayMemberBinding="{Binding LocationText}"/>
+                                        <GridViewColumn Header="Notes" Width="200" DisplayMemberBinding="{Binding Notes}"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </DockPanel>
+                    </GroupBox>
+
+                </Grid>
+            </TabItem>
 
             <!-- Expenses tab: Person C adds it on day 16 -->
 
