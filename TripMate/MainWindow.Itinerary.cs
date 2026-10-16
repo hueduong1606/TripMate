@@ -180,5 +180,75 @@ namespace TripMate
             ReloadCurrentTrip();
             SetStatus(name + " added to day " + dayNumber);
         }
+
+        // Move the selected activity one place earlier in the day
+        private void moveUpButton_Click(object sender, RoutedEventArgs e)
+        {
+            MoveSelectedActivity(-1);
+        }
+
+        // Move the selected activity one place later in the day
+        private void moveDownButton_Click(object sender, RoutedEventArgs e)
+        {
+            MoveSelectedActivity(+1);
+        }
+
+        // Method to swap the selected activity with the one above (-1) or below (+1)
+        private void MoveSelectedActivity(int direction)
+        {
+            Activity? selected = activitiesListView.SelectedItem as Activity;
+            if (selected == null) return;
+
+            List<Activity> dayActivities = GetSelectedDayActivities();
+            int index = dayActivities.FindIndex(a => a.ActivityId == selected.ActivityId);
+            int otherIndex = index + direction;
+            if (index < 0 || otherIndex < 0 || otherIndex >= dayActivities.Count) return;
+
+            // Give the activities their new positions (1, 2, 3...) with the two swapped
+            Activity temp = dayActivities[index];
+            dayActivities[index] = dayActivities[otherIndex];
+            dayActivities[otherIndex] = temp;
+            SaveDayOrder(dayActivities);
+
+            ReloadCurrentTrip();
+            activitiesListView.SelectedIndex = otherIndex;
+        }
+
+        // Delete the selected activity from the database
+        private void removeActivityButton_Click(object sender, RoutedEventArgs e)
+        {
+            Activity? selected = activitiesListView.SelectedItem as Activity;
+            if (selected == null) return;
+
+            using (var context = new Context())
+            {
+                Activity? toRemove = context.Activities.Find(selected.ActivityId);
+                if (toRemove != null)
+                {
+                    context.Activities.Remove(toRemove);
+                    context.SaveChanges();
+                }
+            }
+
+            // Renumber the rest of the day
+            List<Activity> remaining = GetSelectedDayActivities().Where(a => a.ActivityId != selected.ActivityId).ToList();
+            SaveDayOrder(remaining);
+            ReloadCurrentTrip();
+            SetStatus(selected.Name + " removed");
+        }
+
+        // Method to save a day's activities in the order of the list (Order = 1, 2, 3...)
+        private void SaveDayOrder(List<Activity> orderedActivities)
+        {
+            using (var context = new Context())
+            {
+                for (int i = 0; i < orderedActivities.Count; i++)
+                {
+                    Activity? activity = context.Activities.Find(orderedActivities[i].ActivityId);
+                    if (activity != null) activity.Order = i + 1;
+                }
+                context.SaveChanges();
+            }
+        }
     }
 }

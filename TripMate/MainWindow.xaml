@@ -77,6 +77,12 @@
 
                             <!-- Route optimisation -->
 
+                            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
+                                <Button x:Name="moveUpButton" Content="Move Up" Click="moveUpButton_Click"/>
+                                <Button x:Name="moveDownButton" Content="Move Down" Click="moveDownButton_Click"/>
+                                <Button x:Name="removeActivityButton" Content="Remove" Click="removeActivityButton_Click"/>
+                            </StackPanel>
+
                             <ListView x:Name="activitiesListView">
                                 <ListView.View>
                                     <GridView>
