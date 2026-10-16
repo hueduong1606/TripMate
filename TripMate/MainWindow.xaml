@@ -76,6 +76,17 @@
                             </StackPanel>
 
                             <!-- Route optimisation -->
+                            <Border DockPanel.Dock="Bottom" Background="{StaticResource LightBrush}" Padding="8" Margin="0,6,0,0">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Label Content="Getting around by:"/>
+                                        <ComboBox x:Name="travelModeComboBox" Width="150" SelectionChanged="travelModeComboBox_SelectionChanged"/>
+                                        <Button x:Name="optimiseButton" Content="Optimise Route" Style="{StaticResource PrimaryButton}" Click="optimiseButton_Click"/>
+                                    </StackPanel>
+                                    <TextBlock x:Name="routeResultText" TextWrapping="Wrap" Margin="4"
+                                               Text="The first stop of the day stays in place (e.g. your hostel). The other stops are re-ordered to cut travel time."/>
+                                </StackPanel>
+                            </Border>
 
                             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
                                 <Button x:Name="moveUpButton" Content="Move Up" Click="moveUpButton_Click"/>

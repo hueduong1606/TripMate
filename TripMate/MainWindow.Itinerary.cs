@@ -15,11 +15,17 @@ namespace TripMate
 {
     public partial class MainWindow
     {
+        private readonly RouteOptimiser routeOptimiser = new RouteOptimiser();
         private readonly IGeocodingService geocodingService = new GeocodingService();
 
         // Called from the MainWindow constructor
         partial void SetupItineraryTab()
         {
+            // Fill the travel modes: one object of each TravelMode subclass
+            foreach (TravelMode mode in TravelMode.GetAll()) travelModeComboBox.Items.Add(mode);
+            travelModeComboBox.SelectedIndex = 0;
+
+
             // Redraw the itinerary whenever the trip data changes
             refreshTripViews += ShowItinerary;
         }
@@ -56,12 +62,42 @@ namespace TripMate
         {
             List<Activity> dayActivities = GetSelectedDayActivities();
             activitiesListView.ItemsSource = dayActivities;
+            ShowCurrentRouteInfo(dayActivities);
+        }
+
+        // Show how far the day's current route is
+        private void ShowCurrentRouteInfo(List<Activity> dayActivities)
+        {
+            List<Activity> located = dayActivities.Where(a => a.HasLocation).ToList();
+            if (located.Count < 2)
+            {
+                routeResultText.Text = "Add at least two stops with a location to see travel distances. The first stop of the day stays in place (e.g. your hostel).";
+                return;
+            }
+
+            TravelMode mode = travelModeComboBox.SelectedItem as TravelMode ?? new WalkingMode();
+            double km = routeOptimiser.RouteLength(located);
+            double minutes = routeOptimiser.TravelMinutes(located, mode);
+            routeResultText.Text = "Current route: " + km.ToString("0.0") + " km, about " + FormatMinutes(minutes) + " " + mode.Name.ToLower() + ".";
+        }
+
+        // Method to turn minutes into text like "1 h 25 min"
+        private static string FormatMinutes(double minutes)
+        {
+            int total = (int)Math.Round(minutes);
+            return total >= 60 ? (total / 60) + " h " + (total % 60) + " min" : total + " min";
         }
 
         // A different day was chosen: show its activities
         private void dayComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ShowDayActivities();
+        }
+
+        // A different travel mode was chosen: update the travel time
+        private void travelModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (currentTrip != null) ShowDayActivities();
         }
 
         // Method to look up an activity's location with OpenStreetMap
@@ -230,6 +266,8 @@ namespace TripMate
                 }
             }
 
+
+
             // Renumber the rest of the day
             List<Activity> remaining = GetSelectedDayActivities().Where(a => a.ActivityId != selected.ActivityId).ToList();
             SaveDayOrder(remaining);
@@ -249,6 +287,54 @@ namespace TripMate
                 }
                 context.SaveChanges();
             }
+        }
+
+        // Method to re-order the day's activities to reduce travel time
+        private void optimiseButton_Click(object sender, RoutedEventArgs e)
+        {
+            TripDay? day = dayComboBox.SelectedItem as TripDay;
+            if (day == null) return;
+
+            List<Activity> dayActivities = GetSelectedDayActivities();
+            if (dayActivities.Count(a => a.HasLocation) < 3)
+            {
+                MessageBox.Show("Route optimisation needs at least 3 stops with a location on this day.", "TripMate");
+                return;
+            }
+
+            // Polymorphism: "mode" can be any TravelMode subclass, and its own MinutesFor override is used
+            TravelMode mode = travelModeComboBox.SelectedItem as TravelMode ?? new WalkingMode();
+
+            // Run nearest neighbour + 2-opt
+            RouteResult<Activity> result = routeOptimiser.Optimise(dayActivities);
+            List<Activity> located = dayActivities.Where(a => a.HasLocation).ToList();
+            double minutesBefore = routeOptimiser.TravelMinutes(located, mode);
+            double minutesAfter = routeOptimiser.TravelMinutes(result.Route, mode);
+
+            // New order = optimised route, then any stops without a location at the end
+            List<Activity> newOrder = new List<Activity>(result.Route);
+            newOrder.AddRange(result.Unlocated);
+            SaveDayOrder(newOrder);
+            ReloadCurrentTrip();
+
+            // Explain what changed
+            if (result.KmSaved < 0.05)
+            {
+                routeResultText.Text = "Day " + day.DayNumber + " is already in a good order: " + result.OptimisedDistanceKm.ToString("0.0") +
+                                       " km, about " + FormatMinutes(minutesAfter) + " " + mode.Name.ToLower() + ".";
+            }
+            else
+            {
+                routeResultText.Text = "Day " + day.DayNumber + " optimised: " + result.OriginalDistanceKm.ToString("0.0") + " km -> " +
+                                       result.OptimisedDistanceKm.ToString("0.0") + " km (" + result.KmSaved.ToString("0.0") + " km shorter). " +
+                                       mode.Name + " time: " + FormatMinutes(minutesBefore) + " -> " + FormatMinutes(minutesAfter) +
+                                       ", saving about " + FormatMinutes(minutesBefore - minutesAfter) + ".";
+            }
+            if (result.Unlocated.Count > 0)
+            {
+                routeResultText.Text += " Stops without a location were moved to the end: " + string.Join(", ", result.Unlocated.Select(a => a.Name)) + ".";
+            }
+            SetStatus("Route optimised");
         }
     }
 }
