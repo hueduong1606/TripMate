@@ -14,6 +14,8 @@ namespace TripMate
 {
     public partial class MainWindow
     {
+        private readonly ICurrencyService currencyService = new CurrencyService();
+
         // Expense categories, used by the ComboBox and the pie chart
         private static readonly string[] categories = { "Accommodation", "Food", "Transport", "Activities", "Shopping", "Other" };
 
@@ -43,6 +45,13 @@ namespace TripMate
             // Settle-up payments are listed too, but they are not spending
             List<Expense> spending = currentTrip.SpendingExpenses;
             expenseTotalText.Text = "Total spent: " + Money(spending.Sum(x => x.Amount)) + " across " + spending.Count + " expenses";
+
+            // Currencies the expense can be entered in
+            List<string> currencies = new List<string> { currentTrip.HomeCurrency };
+            if (currentTrip.LocalCurrency != currentTrip.HomeCurrency) currencies.Add(currentTrip.LocalCurrency);
+            currencies.AddRange(CurrencyService.SupportedCurrencies.Where(c => !currencies.Contains(c)));
+            expenseCurrencyComboBox.ItemsSource = currencies;
+            expenseCurrencyComboBox.SelectedIndex = currentTrip.LocalCurrency != currentTrip.HomeCurrency ? 1 : 0;
         }
 
         // Tick every traveller in the "split between" list
@@ -81,8 +90,27 @@ namespace TripMate
                 return;
             }
 
-            string currency = currentTrip.HomeCurrency;
+            string currency = expenseCurrencyComboBox.SelectedItem as string ?? currentTrip.HomeCurrency;
             decimal amount = originalAmount;
+
+            try
+            {
+                addExpenseButton.IsEnabled = false;
+
+                // Convert to the currency the group settles up in
+                if (currency != currentTrip.HomeCurrency)
+                {
+                    SetStatus("Converting " + currency + " to " + currentTrip.HomeCurrency + "...");
+                    amount = await currencyService.ConvertAsync(originalAmount, currency, currentTrip.HomeCurrency);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions, e.g. no internet or a currency the API does not cover
+                MessageBox.Show("Could not convert the currency: " + ex.Message + "\nPlease enter the amount in " + currentTrip.HomeCurrency + ".", "TripMate");
+                addExpenseButton.IsEnabled = true;
+                return;
+            }
 
             // Split equally, in whole cents
             decimal[] shares = DebtSettler.SplitEqually(amount, sharedBy.Count);

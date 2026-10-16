@@ -190,6 +190,7 @@
                             <Label Grid.Row="1" Content="Amount:"/>
                             <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
                                 <TextBox x:Name="expenseAmountTextBox" Width="100"/>
+                                <ComboBox x:Name="expenseCurrencyComboBox" Width="80"/>
                             </StackPanel>
 
                             <Label Grid.Row="2" Content="Category:"/>
