@@ -1,0 +1,119 @@
+using System.Windows;
+using Microsoft.EntityFrameworkCore;
+using TripMate.Core.Algorithms;
+using TripMate.Core.Data;
+using TripMate.Core.Models;
+using TripMate.Core.Services;
+
+/*
+ Expenses tab: log who paid for what and who shares it, then "Settle Up"
+ works out who pays whom with the fewest transfers (see DebtSettler).
+*/
+
+namespace TripMate
+{
+    public partial class MainWindow
+    {
+        // Expense categories, used by the ComboBox and the pie chart
+        private static readonly string[] categories = { "Accommodation", "Food", "Transport", "Activities", "Shopping", "Other" };
+
+        // Called from the MainWindow constructor
+        partial void SetupExpensesTab()
+        {
+            foreach (string category in categories) categoryComboBox.Items.Add(category);
+            categoryComboBox.SelectedIndex = 1;
+            expenseDatePicker.SelectedDate = DateTime.Today;
+
+            refreshTripViews += ShowExpenses;
+        }
+
+        // Method to show the expenses of the current trip in the data grid
+        private void ShowExpenses()
+        {
+            if (currentTrip == null) return;
+
+            // Who can pay and who can share an expense
+            List<Member> members = currentTrip.Members.OrderBy(x => x.Name).ToList();
+            paidByComboBox.ItemsSource = members;
+            splitListBox.ItemsSource = members;
+            splitListBox.SelectAll();
+
+            // Newest expenses first
+            expensesDataGrid.ItemsSource = currentTrip.Expenses.OrderByDescending(x => x.Date).ThenByDescending(x => x.ExpenseId).ToList();
+            // Settle-up payments are listed too, but they are not spending
+            List<Expense> spending = currentTrip.SpendingExpenses;
+            expenseTotalText.Text = "Total spent: " + Money(spending.Sum(x => x.Amount)) + " across " + spending.Count + " expenses";
+        }
+
+        // Tick every traveller in the "split between" list
+        private void selectAllButton_Click(object sender, RoutedEventArgs e)
+        {
+            splitListBox.SelectAll();
+        }
+
+        // Validate the form, convert the amount if needed and save the expense
+        private async void addExpenseButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (currentTrip == null) return;
+
+            // Validate the input
+            string description = expenseDescriptionTextBox.Text.Trim();
+            if (description == "")
+            {
+                MessageBox.Show("Please enter a description.", "TripMate");
+                return;
+            }
+            if (!decimal.TryParse(expenseAmountTextBox.Text, out decimal originalAmount) || originalAmount <= 0)
+            {
+                MessageBox.Show("Please enter an amount greater than 0.", "TripMate");
+                return;
+            }
+            Member? payer = paidByComboBox.SelectedItem as Member;
+            if (payer == null)
+            {
+                MessageBox.Show("Please choose who paid.", "TripMate");
+                return;
+            }
+            List<Member> sharedBy = splitListBox.SelectedItems.Cast<Member>().OrderBy(m => m.Name).ToList();
+            if (sharedBy.Count == 0)
+            {
+                MessageBox.Show("Please choose who the expense is split between.", "TripMate");
+                return;
+            }
+
+            string currency = currentTrip.HomeCurrency;
+            decimal amount = originalAmount;
+
+            // Split equally, in whole cents
+            decimal[] shares = DebtSettler.SplitEqually(amount, sharedBy.Count);
+
+            Expense expense = new Expense
+            {
+                Description = description,
+                Category = categoryComboBox.SelectedItem as string ?? "Other",
+                Date = expenseDatePicker.SelectedDate ?? DateTime.Today,
+                Amount = amount,
+                OriginalAmount = originalAmount,
+                OriginalCurrency = currency,
+                PaidById = payer.MemberId,
+                TripId = currentTrip.TripId
+            };
+            for (int i = 0; i < sharedBy.Count; i++)
+            {
+                expense.Shares.Add(new ExpenseShare { MemberId = sharedBy[i].MemberId, ShareAmount = shares[i] });
+            }
+
+            using (var context = new Context())
+            {
+                context.Expenses.Add(expense);
+                context.SaveChanges();
+            }
+
+            expenseDescriptionTextBox.Clear();
+            expenseAmountTextBox.Clear();
+            addExpenseButton.IsEnabled = true;
+            ReloadCurrentTrip();
+            SetStatus(description + " added: " + Money(amount));
+        }
+    }
+}

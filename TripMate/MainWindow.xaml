@@ -1,4 +1,4 @@
-﻿<Window x:Class="TripMate.MainWindow"
+<Window x:Class="TripMate.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="TripMate - Group Travel Planner" Height="800" Width="1250"
@@ -136,7 +136,85 @@
                 </Grid>
             </TabItem>
 
-            <!-- Expenses tab: Person C adds it on day 16 -->
+            <!-- ===================== EXPENSES ===================== -->
+            <TabItem Header="Expenses">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="330"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="430"/>
+                    </Grid.ColumnDefinitions>
+
+                    <GroupBox Grid.ColumnSpan="2" Header="Shared expenses">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
+                                <TextBlock x:Name="expenseTotalText" VerticalAlignment="Center" Margin="10,0" FontWeight="SemiBold"/>
+                            </StackPanel>
+                            <DataGrid x:Name="expensesDataGrid" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
+                                      HeadersVisibility="Column" GridLinesVisibility="Horizontal">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='dd MMM'}" Width="70"/>
+                                    <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2*"/>
+                                    <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="*"/>
+                                    <DataGridTextColumn Header="Paid by" Binding="{Binding PaidByName}" Width="*"/>
+                                    <DataGridTextColumn Header="Amount" Binding="{Binding Amount, StringFormat=0.00}" Width="80"/>
+                                    <DataGridTextColumn Header="Paid in" Binding="{Binding OriginalText}" Width="110"/>
+                                    <DataGridTextColumn Header="Split between" Binding="{Binding SplitBetween}" Width="2*"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </GroupBox>
+
+                    <GroupBox Grid.Row="1" Header="Add an expense">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="200"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <Label Content="Description:"/>
+                            <TextBox Grid.Column="1" x:Name="expenseDescriptionTextBox"/>
+
+                            <Label Grid.Row="1" Content="Amount:"/>
+                            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+                                <TextBox x:Name="expenseAmountTextBox" Width="100"/>
+                            </StackPanel>
+
+                            <Label Grid.Row="2" Content="Category:"/>
+                            <ComboBox Grid.Row="2" Grid.Column="1" x:Name="categoryComboBox"/>
+
+                            <Label Grid.Row="3" Content="Paid by:"/>
+                            <ComboBox Grid.Row="3" Grid.Column="1" x:Name="paidByComboBox"/>
+
+                            <Label Grid.Row="4" Content="Date:"/>
+                            <DatePicker Grid.Row="4" Grid.Column="1" x:Name="expenseDatePicker"/>
+
+                            <Button Grid.Row="5" Grid.Column="1" x:Name="addExpenseButton" Content="Add Expense" Style="{StaticResource PrimaryButton}"
+                                    HorizontalAlignment="Left" VerticalAlignment="Top" Click="addExpenseButton_Click"/>
+
+                            <!-- Who shares this expense -->
+                            <DockPanel Grid.Column="2" Grid.RowSpan="6" Margin="6,0,0,0">
+                                <TextBlock DockPanel.Dock="Top" Text="Split equally between:" Margin="4"/>
+                                <Button DockPanel.Dock="Bottom" x:Name="selectAllButton" Content="Select everyone" Click="selectAllButton_Click"/>
+                                <ListBox x:Name="splitListBox" SelectionMode="Multiple"/>
+                            </DockPanel>
+                        </Grid>
+                    </GroupBox>
+
+                </Grid>
+            </TabItem>
 
             <!-- Explore tab: Person B adds it on day 17 -->
 
