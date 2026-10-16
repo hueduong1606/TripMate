@@ -19,6 +19,10 @@ namespace TripMate
         // Attraction search results
         private List<Attraction> attractions = new List<Attraction>();
 
+        // Goes up by 1 every time a trip is selected, so a slow request started before
+        // the switch can tell it is out of date (even after switching A -> B -> A)
+        private int exploreRequestVersion = 0;
+
         // Called from the MainWindow constructor
         partial void SetupExploreTab()
         {
@@ -41,29 +45,49 @@ namespace TripMate
         // Clear the results from the previous trip
         private void ClearExploreResults()
         {
+            // Any request still running belongs to the old trip, so make it out of date
+            exploreRequestVersion++;
+
             weatherDataGrid.ItemsSource = null;
             weatherInfoText.Text = "";
             attractionsListBox.ItemsSource = null;
             attractionInfoText.Text = "";
         }
 
-        // Method to make sure the trip has coordinates; looks up the destination if needed
-        private async Task<bool> EnsureDestinationLocationAsync()
+        // True if the user selected another trip after the request started
+        private bool IsExploreRequestOutdated(int requestedTripId, int requestVersion)
         {
-            if (currentTrip == null) return false;
-            if (currentTrip.Latitude.HasValue && currentTrip.Longitude.HasValue) return true;
+            return currentTrip == null
+                || currentTrip.TripId != requestedTripId
+                || exploreRequestVersion != requestVersion;
+        }
 
-            GeoPlace? place = await geocodingService.FindCityAsync(currentTrip.Destination);
+        // Method to make sure the trip has coordinates; looks up the destination if needed
+        private async Task<bool> EnsureDestinationLocationAsync(int requestedTripId, int requestVersion)
+        {
+            if (IsExploreRequestOutdated(requestedTripId, requestVersion)) return false;
+
+            Trip requestedTrip = currentTrip!;
+            if (requestedTrip.Latitude.HasValue && requestedTrip.Longitude.HasValue) return true;
+
+            // Remember the destination before waiting, because currentTrip may change
+            string requestedDestination = requestedTrip.Destination;
+
+            GeoPlace? place = await geocodingService.FindCityAsync(requestedDestination);
+
+            // Ignore the response if the selected trip changed while we were waiting
+            if (IsExploreRequestOutdated(requestedTripId, requestVersion)) return false;
+
             if (place == null)
             {
-                MessageBox.Show("Could not find \"" + currentTrip.Destination + "\" on the map.", "TripMate");
+                MessageBox.Show("Could not find \"" + requestedDestination + "\" on the map.", "TripMate");
                 return false;
             }
 
-            // Save the coordinates so we only look them up once
+            // Save the coordinates to the trip that started the request
             using (var context = new Context())
             {
-                Trip? trip = context.Trips.Find(currentTrip.TripId);
+                Trip? trip = context.Trips.Find(requestedTripId);
                 if (trip != null)
                 {
                     trip.Latitude = place.Latitude;
@@ -71,7 +95,7 @@ namespace TripMate
                     context.SaveChanges();
                 }
             }
-            currentTrip.Latitude = place.Latitude;
+            currentTrip!.Latitude = place.Latitude;
             currentTrip.Longitude = place.Longitude;
             ShowOverview();
             return true;
@@ -82,24 +106,42 @@ namespace TripMate
         {
             if (currentTrip == null) return;
 
+            // Remember which trip this request is for
+            int requestedTripId = currentTrip.TripId;
+            int requestVersion = exploreRequestVersion;
+
             try
             {
                 weatherButton.IsEnabled = false;
                 SetStatus("Getting the forecast...");
-                if (!await EnsureDestinationLocationAsync()) return;
+                if (!await EnsureDestinationLocationAsync(requestedTripId, requestVersion)) return;
+                if (IsExploreRequestOutdated(requestedTripId, requestVersion)) return;
 
-                List<WeatherDay> forecast = await weatherService.GetForecastAsync(currentTrip.Latitude!.Value, currentTrip.Longitude!.Value, 16);
+                // Copy the trip details before the next await
+                Trip requestedTrip = currentTrip!;
+                string destination = requestedTrip.Destination;
+                DateTime startDate = requestedTrip.StartDate.Date;
+                DateTime endDate = requestedTrip.EndDate.Date;
+
+                List<WeatherDay> forecast = await weatherService.GetForecastAsync(requestedTrip.Latitude!.Value, requestedTrip.Longitude!.Value, 16);
+
+                // Only show the forecast if the user is still on the same trip
+                if (IsExploreRequestOutdated(requestedTripId, requestVersion)) return;
+
                 weatherDataGrid.ItemsSource = forecast;
 
                 // Tell the user which forecast days fall inside the trip
-                int tripDaysInForecast = forecast.Count(d => d.Date >= currentTrip.StartDate.Date && d.Date <= currentTrip.EndDate.Date);
+                int tripDaysInForecast = forecast.Count(d => d.Date >= startDate && d.Date <= endDate);
                 weatherInfoText.Text = tripDaysInForecast > 0
                     ? tripDaysInForecast + " of the forecast days are during your trip."
                     : "Forecasts only reach 16 days ahead, so this is the weather there right now.";
-                SetStatus("Forecast for " + currentTrip.Destination + " updated");
+                SetStatus("Forecast for " + destination + " updated");
             }
             catch (Exception ex)
             {
+                // No error message for a trip the user has already left
+                if (IsExploreRequestOutdated(requestedTripId, requestVersion)) return;
+
                 MessageBox.Show("Could not get the weather: " + ex.Message, "TripMate");
                 SetStatus("Weather unavailable");
             }
@@ -114,20 +156,29 @@ namespace TripMate
         {
             if (currentTrip == null) return;
 
+            // Remember which trip this request is for, and the search settings at the time of the click
+            int requestedTripId = currentTrip.TripId;
+            int requestVersion = exploreRequestVersion;
+            int radiusKm = (int)radiusSlider.Value;
+            string keyword = keywordTextBox.Text.Trim();
+
             try
             {
                 searchAttractionsButton.IsEnabled = false;
                 SetStatus("Searching for things to see...");
-                if (!await EnsureDestinationLocationAsync()) return;
+                if (!await EnsureDestinationLocationAsync(requestedTripId, requestVersion)) return;
+                if (IsExploreRequestOutdated(requestedTripId, requestVersion)) return;
 
-                int radiusKm = (int)radiusSlider.Value;
-                attractions = await attractionService.SearchNearbyAsync(currentTrip.Latitude!.Value, currentTrip.Longitude!.Value, radiusKm);
+                Trip requestedTrip = currentTrip!;
+                List<Attraction> found = await attractionService.SearchNearbyAsync(requestedTrip.Latitude!.Value, requestedTrip.Longitude!.Value, radiusKm);
+
+                // Only update the list if the user is still on the same trip
+                if (IsExploreRequestOutdated(requestedTripId, requestVersion)) return;
 
                 // Optional keyword filter, passed as a Predicate using an anonymous method (Week 7)
-                string keyword = keywordTextBox.Text.Trim();
                 if (keyword != "")
                 {
-                    attractions = AttractionService.FilterAttractions(attractions, delegate (Attraction a)
+                    found = AttractionService.FilterAttractions(found, delegate (Attraction a)
                     {
                         // The anonymous method can use the "keyword" variable from outside it
                         return a.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase);
@@ -135,7 +186,7 @@ namespace TripMate
                 }
 
                 // LINQ with lambda expressions: closest places first, no duplicate names
-                attractions = attractions
+                attractions = found
                     .GroupBy(a => a.Name)
                     .Select(g => g.First())
                     .OrderBy(a => a.DistanceKm)
@@ -147,6 +198,9 @@ namespace TripMate
             }
             catch (Exception ex)
             {
+                // No error message for a trip the user has already left
+                if (IsExploreRequestOutdated(requestedTripId, requestVersion)) return;
+
                 MessageBox.Show("Could not search for attractions: " + ex.Message, "TripMate");
                 SetStatus("Attraction search unavailable");
             }
