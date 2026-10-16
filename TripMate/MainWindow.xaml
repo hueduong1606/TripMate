@@ -14,6 +14,8 @@
                 <ComboBox x:Name="tripComboBox" Width="420" SelectionChanged="tripComboBox_SelectionChanged"/>
                 <Button x:Name="newTripButton" Content="New Trip" Click="newTripButton_Click"/>
                 <Button x:Name="deleteTripButton" Content="Delete Trip" Click="deleteTripButton_Click"/>
+
+                <Button x:Name="sampleTripButton" Content="Add Sample Trip" Click="sampleTripButton_Click"/>
                 <TextBlock x:Name="tripSummaryText" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="10,0"/>
             </DockPanel>
         </Border>

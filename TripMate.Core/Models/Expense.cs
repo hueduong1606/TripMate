@@ -28,6 +28,7 @@ namespace TripMate.Core.Models
         public Member? PaidBy { get; set; }
 
         public int TripId { get; set; }
+        public Trip? Trip { get; set; }
 
         // Who the expense is split between, and how much each person owes
         public IList<ExpenseShare> Shares { get; set; }
