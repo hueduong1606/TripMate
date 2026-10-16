@@ -240,7 +240,61 @@
                 </Grid>
             </TabItem>
 
-            <!-- Explore tab: Person B adds it on day 17 -->
+            <!-- ===================== EXPLORE ===================== -->
+            <TabItem Header="Explore">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <GroupBox Header="Weather forecast (Open-Meteo)">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                <Button x:Name="weatherButton" Content="Get Forecast" Click="weatherButton_Click"/>
+                                <TextBlock x:Name="weatherInfoText" VerticalAlignment="Center" Margin="6,0" Foreground="Gray"/>
+                            </StackPanel>
+                            <DataGrid x:Name="weatherDataGrid" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='ddd dd MMM'}" Width="100"/>
+                                    <DataGridTextColumn Header="Conditions" Binding="{Binding Conditions}" Width="*"/>
+                                    <DataGridTextColumn Header="Min °C" Binding="{Binding MinTemp, StringFormat=0}" Width="60"/>
+                                    <DataGridTextColumn Header="Max °C" Binding="{Binding MaxTemp, StringFormat=0}" Width="60"/>
+                                    <DataGridTextColumn Header="Rain" Binding="{Binding RainText}" Width="60"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </GroupBox>
+
+                    <GroupBox Grid.Column="1" Grid.RowSpan="2" Header="Things to see nearby (Wikipedia)">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                <Label Content="Within:"/>
+                                <Slider x:Name="radiusSlider" Width="110" Minimum="1" Maximum="10" Value="5"
+                                        TickFrequency="1" IsSnapToTickEnabled="True" TickPlacement="BottomRight" VerticalAlignment="Center"/>
+                                <TextBlock Width="40" VerticalAlignment="Center" Margin="4,0"
+                                           Text="{Binding Value, ElementName=radiusSlider, StringFormat='{}{0:0} km'}"/>
+                                <Label Content="Keyword:"/>
+                                <TextBox x:Name="keywordTextBox" Width="120" ToolTip="Optional, e.g. museum, park, beach"/>
+                                <Button x:Name="searchAttractionsButton" Content="Search" Click="searchAttractionsButton_Click"/>
+                            </StackPanel>
+                            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
+                                <ComboBox x:Name="attractionDayComboBox" Width="170"/>
+                                <Button x:Name="addAttractionButton" Content="Add to Itinerary" Style="{StaticResource PrimaryButton}" Click="addAttractionButton_Click"/>
+                                <Button x:Name="openAttractionButton" Content="Read More" Click="openAttractionButton_Click"/>
+                            </StackPanel>
+                            <TextBlock DockPanel.Dock="Bottom" x:Name="attractionInfoText" Foreground="Gray" Margin="4"/>
+                            <ListBox x:Name="attractionsListBox" MouseDoubleClick="openAttractionButton_Click"/>
+                        </DockPanel>
+                    </GroupBox>
+
+                    <!-- Currency converter: Person C adds it on day 18 -->
+                </Grid>
+            </TabItem>
 
             <!-- Insights tab: Person C adds it on day 17 -->
         </TabControl>
