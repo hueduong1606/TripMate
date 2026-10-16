@@ -318,6 +318,41 @@
                     <GroupBox Grid.Row="1" Header="Spending per day">
                         <oxy:PlotView x:Name="dailyPlot"/>
                     </GroupBox>
+                    <GroupBox Grid.Row="1" Grid.Column="1" Header="Predict a trip's cost (ML.NET)">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <Label Content="Destination:"/>
+                            <ComboBox Grid.Column="1" x:Name="predictDestinationComboBox"/>
+                            <Label Grid.Row="1" Content="Accommodation:"/>
+                            <ComboBox Grid.Row="1" Grid.Column="1" x:Name="accommodationComboBox"/>
+                            <Label Grid.Row="2" Content="Days / travellers:"/>
+                            <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+                                <TextBox x:Name="predictDaysTextBox" Width="60" Text="5"/>
+                                <TextBox x:Name="predictTravellersTextBox" Width="60" Text="4"/>
+                            </StackPanel>
+                            <Label Grid.Row="3" Content="Activities per day:"/>
+                            <TextBox Grid.Row="3" Grid.Column="1" x:Name="predictActivitiesTextBox" Width="60" HorizontalAlignment="Left" Text="2"/>
+                            <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal">
+                                <Button x:Name="predictButton" Content="Predict Cost" Style="{StaticResource PrimaryButton}" Click="predictButton_Click"/>
+                                <Button x:Name="fillFromTripButton" Content="Use This Trip" Click="fillFromTripButton_Click"/>
+                            </StackPanel>
+                            <TextBlock Grid.Row="5" Grid.ColumnSpan="2" x:Name="predictionResultText" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" Margin="4"/>
+                            <TextBlock Grid.Row="6" Grid.ColumnSpan="2" x:Name="modelInfoText" Foreground="Gray" TextWrapping="Wrap" Margin="4"/>
+                        </Grid>
+                    </GroupBox>
 
                 </Grid>
             </TabItem>

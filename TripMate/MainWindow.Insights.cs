@@ -14,11 +14,18 @@ namespace TripMate
 {
     public partial class MainWindow
     {
+        private readonly CostPredictor costPredictor = new CostPredictor();
+        private int predictionRequestVersion;
+
         // Called from the MainWindow constructor
         partial void SetupInsightsTab()
         {
+            foreach (string type in new[] { "Hostel", "Airbnb", "Hotel" }) accommodationComboBox.Items.Add(type);
+            accommodationComboBox.SelectedIndex = 0;
+
             refreshTripViews += ShowCharts;
             tabChanged += InsightsTabChanged;
+            tripSelected += ClearPrediction;
         }
 
         // When the Insights tab is opened, redraw the charts and train the model the first time
@@ -26,6 +33,14 @@ namespace TripMate
         {
             if (mainTabs.SelectedItem != insightsTab) return;
             ShowCharts();
+            TrainModelIfNeeded();
+        }
+
+        // Clear the old prediction when a different trip is chosen
+        private void ClearPrediction()
+        {
+            predictionRequestVersion++;
+            predictionResultText.Text = "";
         }
 
         // Method to draw the three spending charts with OxyPlot
@@ -89,6 +104,112 @@ namespace TripMate
             dailyModel.Series.Add(dailySeries);
             dailyModel.Series.Add(runningSeries);
             dailyPlot.Model = dailyModel;
+        }
+
+        // Train the ML.NET model the first time the Insights tab is opened.
+        // Training runs on a background thread so the window does not freeze.
+        private async void TrainModelIfNeeded()
+        {
+            if (costPredictor.IsTrained || !predictButton.IsEnabled) return;
+
+            try
+            {
+                predictButton.IsEnabled = false;
+                modelInfoText.Text = "Training the cost model...";
+                await Task.Run(() => costPredictor.Train(CostPredictor.DefaultDataPath));
+
+                predictDestinationComboBox.ItemsSource = costPredictor.Destinations;
+                predictDestinationComboBox.SelectedIndex = 0;
+                modelInfoText.Text = "FastTree regression trained on " + costPredictor.TrainingRows + " sample student trips (flights from Sydney included). " +
+                                     "On test data it explains " + (costPredictor.RSquared * 100).ToString("0") + "% of the variation in cost (R²), " +
+                                     "with an average error of $" + costPredictor.MeanAbsoluteError.ToString("0") + " per person. " +
+                                     "The sample data is made up for this project, so treat predictions as a rough guide.";
+                fillFromTripButton_Click(this, new RoutedEventArgs());
+            }
+            catch (Exception ex)
+            {
+                modelInfoText.Text = "Could not train the model: " + ex.Message;
+            }
+            finally
+            {
+                predictButton.IsEnabled = true;
+            }
+        }
+
+        // Fill the prediction form with the current trip's details
+        private void fillFromTripButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (currentTrip == null) return;
+
+            // Pick the destination if the model knows it
+            string? known = costPredictor.Destinations.FirstOrDefault(d => d.Equals(currentTrip.Destination, StringComparison.OrdinalIgnoreCase));
+            if (known != null) predictDestinationComboBox.SelectedItem = known;
+
+            predictDaysTextBox.Text = currentTrip.NumberOfDays.ToString();
+            predictTravellersTextBox.Text = Math.Max(1, currentTrip.Members.Count).ToString();
+            int perDay = (int)Math.Round((double)currentTrip.Activities.Count / currentTrip.NumberOfDays);
+            predictActivitiesTextBox.Text = Math.Clamp(perDay, 1, 4).ToString();
+        }
+
+        // Validate the form and predict the cost per person with the ML.NET model
+        private async void predictButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!costPredictor.IsTrained)
+            {
+                TrainModelIfNeeded();
+                return;
+            }
+
+            // Validate the input
+            string? destination = predictDestinationComboBox.SelectedItem as string;
+            string? accommodation = accommodationComboBox.SelectedItem as string;
+            if (destination == null || accommodation == null)
+            {
+                MessageBox.Show("Please choose a destination and accommodation type.", "TripMate");
+                return;
+            }
+            if (!int.TryParse(predictDaysTextBox.Text, out int days) || days < 1 || days > 30 ||
+                !int.TryParse(predictTravellersTextBox.Text, out int travellers) || travellers < 1 || travellers > 20 ||
+                !int.TryParse(predictActivitiesTextBox.Text, out int activitiesPerDay) || activitiesPerDay < 0 || activitiesPerDay > 10)
+            {
+                MessageBox.Show("Days must be 1-30, travellers 1-20 and activities per day 0-10.", "TripMate");
+                return;
+            }
+
+            // Keep the prediction tied to the trip and request that initiated it.
+            Trip? predictionTrip = currentTrip;
+            int requestVersion = ++predictionRequestVersion;
+            string homeCurrency = predictionTrip?.HomeCurrency ?? "AUD";
+
+            float perPersonAud = costPredictor.PredictCostPerPerson(destination, accommodation, days, travellers, activitiesPerDay);
+            string result = "About $" + perPersonAud.ToString("0") + " AUD per person, $" + (perPersonAud * travellers).ToString("0") + " AUD for the group of " + travellers + ".";
+
+            // Show it in the trip's home currency too, if that is not AUD
+            if (predictionTrip != null && homeCurrency != "AUD")
+            {
+                try
+                {
+                    decimal converted = await currencyService.ConvertAsync((decimal)perPersonAud, "AUD", homeCurrency);
+                    if (requestVersion != predictionRequestVersion || currentTrip?.TripId != predictionTrip.TripId) return;
+                    result += " (" + Money(converted) + " per person)";
+                }
+                catch (Exception)
+                {
+                    // Conversion is optional, so ignore errors here
+                }
+            }
+
+            if (requestVersion != predictionRequestVersion || currentTrip?.TripId != predictionTrip?.TripId) return;
+
+            // Compare with what this trip has actually cost so far
+            if (currentTrip != null && currentTrip.SpendingExpenses.Count > 0 && currentTrip.Members.Count > 0)
+            {
+                decimal spentPerPerson = currentTrip.SpendingExpenses.Sum(x => x.Amount) / currentTrip.Members.Count;
+                result += "\nThis trip so far: " + Money(spentPerPerson) + " per person.";
+            }
+
+            predictionResultText.Text = result;
+            SetStatus("Cost predicted");
         }
     }
 }
