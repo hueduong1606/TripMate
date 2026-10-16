@@ -91,6 +91,25 @@
                         </DockPanel>
                     </GroupBox>
 
+                    <GroupBox Grid.Column="1" Header="Add an activity">
+                        <StackPanel>
+                            <Label Content="Name:"/>
+                            <TextBox x:Name="activityNameTextBox"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Lat:"/>
+                                <TextBox x:Name="latitudeTextBox" Width="110"/>
+                                <Label Content="Lon:"/>
+                                <TextBox x:Name="longitudeTextBox" Width="110"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Duration (minutes):"/>
+                                <TextBox x:Name="durationTextBox" Width="70" Text="60"/>
+                            </StackPanel>
+                            <Label Content="Notes:"/>
+                            <TextBox x:Name="notesTextBox" Height="50" TextWrapping="Wrap" AcceptsReturn="True"/>
+                            <Button x:Name="addActivityButton" Content="Add to selected day" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left" Click="addActivityButton_Click"/>
+                        </StackPanel>
+                    </GroupBox>
                 </Grid>
             </TabItem>
 

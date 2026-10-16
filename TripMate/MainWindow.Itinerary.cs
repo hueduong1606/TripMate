@@ -61,5 +61,74 @@ namespace TripMate
         {
             ShowDayActivities();
         }
+
+        // Validate the form and add the activity to the selected day
+        private void addActivityButton_Click(object sender, RoutedEventArgs e)
+        {
+            TripDay? day = dayComboBox.SelectedItem as TripDay;
+            if (currentTrip == null || day == null) return;
+
+            // Validate the input
+            string name = activityNameTextBox.Text.Trim();
+            if (name == "")
+            {
+                MessageBox.Show("Please enter the activity name.", "TripMate");
+                return;
+            }
+            if (!int.TryParse(durationTextBox.Text, out int duration) || duration < 0)
+            {
+                MessageBox.Show("Duration must be a whole number of minutes.", "TripMate");
+                return;
+            }
+
+            // The location is optional, but both values are needed for routing
+            double? lat = null, lon = null;
+            if (latitudeTextBox.Text.Trim() != "" || longitudeTextBox.Text.Trim() != "")
+            {
+                if (!double.TryParse(latitudeTextBox.Text, out double latValue) || !double.TryParse(longitudeTextBox.Text, out double lonValue) ||
+                    latValue < -90 || latValue > 90 || lonValue < -180 || lonValue > 180)
+                {
+                    MessageBox.Show("Please enter a valid latitude and longitude, or leave both empty.", "TripMate");
+                    return;
+                }
+                lat = latValue;
+                lon = lonValue;
+            }
+
+            AddActivity(name, day.DayNumber, duration, lat, lon, notesTextBox.Text.Trim());
+
+            // Clear the form
+            activityNameTextBox.Clear();
+            latitudeTextBox.Clear();
+            longitudeTextBox.Clear();
+            notesTextBox.Clear();
+        }
+
+        // Method to save a new activity at the end of a day
+        private void AddActivity(string name, int dayNumber, int duration, double? lat, double? lon, string notes)
+        {
+            if (currentTrip == null) return;
+
+            // Next position in the day = highest order so far + 1
+            int nextOrder = currentTrip.Activities.Where(a => a.DayNumber == dayNumber).Select(a => a.Order).DefaultIfEmpty(0).Max() + 1;
+
+            using (var context = new Context())
+            {
+                context.Activities.Add(new Activity
+                {
+                    Name = name,
+                    DayNumber = dayNumber,
+                    Order = nextOrder,
+                    DurationMinutes = duration,
+                    Latitude = lat,
+                    Longitude = lon,
+                    Notes = notes,
+                    TripId = currentTrip.TripId
+                });
+                context.SaveChanges();
+            }
+            ReloadCurrentTrip();
+            SetStatus(name + " added to day " + dayNumber);
+        }
     }
 }
