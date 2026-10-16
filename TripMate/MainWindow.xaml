@@ -95,12 +95,18 @@
                         <StackPanel>
                             <Label Content="Name:"/>
                             <TextBox x:Name="activityNameTextBox"/>
+                            <Label Content="Find location (place name or address):"/>
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" x:Name="findLocationButton" Content="Find" MinWidth="60" Click="findLocationButton_Click"/>
+                                <TextBox x:Name="locationSearchTextBox"/>
+                            </DockPanel>
                             <StackPanel Orientation="Horizontal">
                                 <Label Content="Lat:"/>
                                 <TextBox x:Name="latitudeTextBox" Width="110"/>
                                 <Label Content="Lon:"/>
                                 <TextBox x:Name="longitudeTextBox" Width="110"/>
                             </StackPanel>
+                            <TextBlock x:Name="foundLocationText" TextWrapping="Wrap" Foreground="Gray" Margin="4,0"/>
                             <StackPanel Orientation="Horizontal">
                                 <Label Content="Duration (minutes):"/>
                                 <TextBox x:Name="durationTextBox" Width="70" Text="60"/>

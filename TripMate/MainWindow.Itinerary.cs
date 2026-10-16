@@ -15,6 +15,8 @@ namespace TripMate
 {
     public partial class MainWindow
     {
+        private readonly IGeocodingService geocodingService = new GeocodingService();
+
         // Called from the MainWindow constructor
         partial void SetupItineraryTab()
         {
@@ -62,6 +64,52 @@ namespace TripMate
             ShowDayActivities();
         }
 
+        // Method to look up an activity's location with OpenStreetMap
+        private async void findLocationButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (currentTrip == null) return;
+
+            string query = locationSearchTextBox.Text.Trim();
+            if (query == "") query = activityNameTextBox.Text.Trim();
+            if (query == "")
+            {
+                MessageBox.Show("Type a place name or address to search for.", "TripMate");
+                return;
+            }
+
+            // Add the destination to the search so "Central Station" finds the right city
+            if (!query.Contains(currentTrip.Destination, StringComparison.OrdinalIgnoreCase))
+            {
+                query = query + ", " + currentTrip.Destination;
+            }
+
+            try
+            {
+                findLocationButton.IsEnabled = false;
+                SetStatus("Searching for " + query + "...");
+
+                GeoPlace? place = await geocodingService.FindPlaceAsync(query);
+                if (place == null)
+                {
+                    foundLocationText.Text = "No match found. You can type the coordinates instead.";
+                    return;
+                }
+
+                latitudeTextBox.Text = place.Latitude.ToString("0.000000");
+                longitudeTextBox.Text = place.Longitude.ToString("0.000000");
+                foundLocationText.Text = place.Name;
+                SetStatus("Location found");
+            }
+            catch (Exception ex)
+            {
+                foundLocationText.Text = "Location search failed: " + ex.Message;
+            }
+            finally
+            {
+                findLocationButton.IsEnabled = true;
+            }
+        }
+
         // Validate the form and add the activity to the selected day
         private void addActivityButton_Click(object sender, RoutedEventArgs e)
         {
@@ -99,9 +147,11 @@ namespace TripMate
 
             // Clear the form
             activityNameTextBox.Clear();
+            locationSearchTextBox.Clear();
             latitudeTextBox.Clear();
             longitudeTextBox.Clear();
             notesTextBox.Clear();
+            foundLocationText.Text = "";
         }
 
         // Method to save a new activity at the end of a day
