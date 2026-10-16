@@ -60,7 +60,81 @@
                 </Grid>
             </TabItem>
 
-            <!-- Itinerary tab: Person B adds it on day 16 -->
+            <!-- ===================== ITINERARY ===================== -->
+            <TabItem Header="Itinerary">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="360"/>
+                    </Grid.ColumnDefinitions>
+
+                    <GroupBox Header="Day plan">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                <Label Content="Day:"/>
+                                <ComboBox x:Name="dayComboBox" Width="200" SelectionChanged="dayComboBox_SelectionChanged"/>
+                            </StackPanel>
+
+                            <!-- Route optimisation -->
+                            <Border DockPanel.Dock="Bottom" Background="{StaticResource LightBrush}" Padding="8" Margin="0,6,0,0">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Label Content="Getting around by:"/>
+                                        <ComboBox x:Name="travelModeComboBox" Width="150" SelectionChanged="travelModeComboBox_SelectionChanged"/>
+                                        <Button x:Name="optimiseButton" Content="Optimise Route" Style="{StaticResource PrimaryButton}" Click="optimiseButton_Click"/>
+                                    </StackPanel>
+                                    <TextBlock x:Name="routeResultText" TextWrapping="Wrap" Margin="4"
+                                               Text="The first stop of the day stays in place (e.g. your hostel). The other stops are re-ordered to cut travel time."/>
+                                </StackPanel>
+                            </Border>
+
+                            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
+                                <Button x:Name="moveUpButton" Content="Move Up" Click="moveUpButton_Click"/>
+                                <Button x:Name="moveDownButton" Content="Move Down" Click="moveDownButton_Click"/>
+                                <Button x:Name="removeActivityButton" Content="Remove" Click="removeActivityButton_Click"/>
+                            </StackPanel>
+
+                            <ListView x:Name="activitiesListView">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="#" Width="40" DisplayMemberBinding="{Binding Order}"/>
+                                        <GridViewColumn Header="Activity" Width="260" DisplayMemberBinding="{Binding Name}"/>
+                                        <GridViewColumn Header="Minutes" Width="70" DisplayMemberBinding="{Binding DurationMinutes}"/>
+                                        <GridViewColumn Header="Location" Width="150" DisplayMemberBinding="{Binding LocationText}"/>
+                                        <GridViewColumn Header="Notes" Width="200" DisplayMemberBinding="{Binding Notes}"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </DockPanel>
+                    </GroupBox>
+
+                    <GroupBox Grid.Column="1" Header="Add an activity">
+                        <StackPanel>
+                            <Label Content="Name:"/>
+                            <TextBox x:Name="activityNameTextBox"/>
+                            <Label Content="Find location (place name or address):"/>
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" x:Name="findLocationButton" Content="Find" MinWidth="60" Click="findLocationButton_Click"/>
+                                <TextBox x:Name="locationSearchTextBox"/>
+                            </DockPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Lat:"/>
+                                <TextBox x:Name="latitudeTextBox" Width="110"/>
+                                <Label Content="Lon:"/>
+                                <TextBox x:Name="longitudeTextBox" Width="110"/>
+                            </StackPanel>
+                            <TextBlock x:Name="foundLocationText" TextWrapping="Wrap" Foreground="Gray" Margin="4,0"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Duration (minutes):"/>
+                                <TextBox x:Name="durationTextBox" Width="70" Text="60"/>
+                            </StackPanel>
+                            <Label Content="Notes:"/>
+                            <TextBox x:Name="notesTextBox" Height="50" TextWrapping="Wrap" AcceptsReturn="True"/>
+                            <Button x:Name="addActivityButton" Content="Add to selected day" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left" Click="addActivityButton_Click"/>
+                        </StackPanel>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
 
             <!-- Expenses tab: Person C adds it on day 16 -->
 
