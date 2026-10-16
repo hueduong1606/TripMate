@@ -176,6 +176,8 @@
                                         TickFrequency="1" IsSnapToTickEnabled="True" TickPlacement="BottomRight" VerticalAlignment="Center"/>
                                 <TextBlock Width="40" VerticalAlignment="Center" Margin="4,0"
                                            Text="{Binding Value, ElementName=radiusSlider, StringFormat='{}{0:0} km'}"/>
+                                <Label Content="Keyword:"/>
+                                <TextBox x:Name="keywordTextBox" Width="120" ToolTip="Optional, e.g. museum, park, beach"/>
                                 <Button x:Name="searchAttractionsButton" Content="Search" Click="searchAttractionsButton_Click"/>
                             </StackPanel>
                             <TextBlock DockPanel.Dock="Bottom" x:Name="attractionInfoText" Foreground="Gray" Margin="4"/>

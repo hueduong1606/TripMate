@@ -110,6 +110,24 @@ namespace TripMate
                 int radiusKm = (int)radiusSlider.Value;
                 attractions = await attractionService.SearchNearbyAsync(currentTrip.Latitude!.Value, currentTrip.Longitude!.Value, radiusKm);
 
+                // Optional keyword filter, passed as a Predicate using an anonymous method (Week 7)
+                string keyword = keywordTextBox.Text.Trim();
+                if (keyword != "")
+                {
+                    attractions = AttractionService.FilterAttractions(attractions, delegate (Attraction a)
+                    {
+                        // The anonymous method can use the "keyword" variable from outside it
+                        return a.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase);
+                    });
+                }
+
+                // LINQ with lambda expressions: closest places first, no duplicate names
+                attractions = attractions
+                    .GroupBy(a => a.Name)
+                    .Select(g => g.First())
+                    .OrderBy(a => a.DistanceKm)
+                    .ToList();
+
                 attractionsListBox.ItemsSource = attractions;
                 attractionInfoText.Text = attractions.Count + " places found.";
                 SetStatus("Attraction search finished");
