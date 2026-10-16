@@ -312,6 +312,12 @@
                     <GroupBox Header="Spending by category">
                         <oxy:PlotView x:Name="categoryPlot"/>
                     </GroupBox>
+                    <GroupBox Grid.Column="1" Header="Paid vs fair share, per person">
+                        <oxy:PlotView x:Name="memberPlot"/>
+                    </GroupBox>
+                    <GroupBox Grid.Row="1" Header="Spending per day">
+                        <oxy:PlotView x:Name="dailyPlot"/>
+                    </GroupBox>
 
                 </Grid>
             </TabItem>
