@@ -151,6 +151,7 @@
                     <GroupBox Grid.ColumnSpan="2" Header="Shared expenses">
                         <DockPanel>
                             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
+                                <Button x:Name="deleteExpenseButton" Content="Delete selected" Click="deleteExpenseButton_Click"/>
                                 <TextBlock x:Name="expenseTotalText" VerticalAlignment="Center" Margin="10,0" FontWeight="SemiBold"/>
                             </StackPanel>
                             <DataGrid x:Name="expensesDataGrid" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"

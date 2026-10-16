@@ -143,5 +143,24 @@ namespace TripMate
             ReloadCurrentTrip();
             SetStatus(description + " added: " + Money(amount));
         }
+
+        // Delete the selected expense and its shares
+        private void deleteExpenseButton_Click(object sender, RoutedEventArgs e)
+        {
+            Expense? selected = expensesDataGrid.SelectedItem as Expense;
+            if (selected == null) return;
+
+            using (var context = new Context())
+            {
+                Expense? toRemove = context.Expenses.Include(x => x.Shares).FirstOrDefault(x => x.ExpenseId == selected.ExpenseId);
+                if (toRemove != null)
+                {
+                    context.Expenses.Remove(toRemove);
+                    context.SaveChanges();
+                }
+            }
+            ReloadCurrentTrip();
+            SetStatus(selected.Description + " deleted");
+        }
     }
 }
