@@ -17,8 +17,8 @@ namespace TripMate
         private readonly DebtSettler debtSettler = new DebtSettler();
         private readonly ICurrencyService currencyService = new CurrencyService();
 
-        // Expense categories, used by the ComboBox and the pie chart
-        private static readonly string[] categories = { "Accommodation", "Food", "Transport", "Activities", "Shopping", "Other" };
+        // Expense categories, taken from the ExpenseCategory enum (used by the ComboBox and the pie chart)
+        private static readonly string[] categories = Enum.GetNames(typeof(ExpenseCategory));
 
         // Called from the MainWindow constructor
         partial void SetupExpensesTab()
