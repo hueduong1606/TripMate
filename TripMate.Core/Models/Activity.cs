@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TripMate.Core.Models
 {
@@ -23,7 +23,10 @@ namespace TripMate.Core.Models
         [NotMapped]
         public bool HasLocation
         {
-            get { return Latitude.HasValue && Longitude.HasValue; }
+            get { return Latitude.HasValue && Longitude.HasValue
+                    && double.IsFinite(Latitude.Value) && double.IsFinite(Longitude.Value)
+                    && Latitude.Value >= -90 && Latitude.Value <= 90
+                    && Longitude.Value >= -180 && Longitude.Value <= 180; }
         }
 
         [NotMapped]

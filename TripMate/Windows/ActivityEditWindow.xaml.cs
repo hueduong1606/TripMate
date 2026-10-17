@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using TripMate.Core.Models;
 using TripMate.Core.Services;
 
@@ -110,6 +110,7 @@ namespace TripMate.Windows
             if (latitudeTextBox.Text.Trim() != "" || longitudeTextBox.Text.Trim() != "")
             {
                 if (!double.TryParse(latitudeTextBox.Text, out double latValue) || !double.TryParse(longitudeTextBox.Text, out double lonValue) ||
+                    !double.IsFinite(latValue) || !double.IsFinite(lonValue) ||
                     latValue < -90 || latValue > 90 || lonValue < -180 || lonValue > 180)
                 {
                     MessageBox.Show("Please enter a valid latitude (-90 to 90) and longitude (-180 to 180), or leave both empty.", "TripMate");
