@@ -120,6 +120,8 @@ namespace TripMate
             try
             {
                 predictButton.IsEnabled = false;
+                // Lock the form while training, because it is filled in automatically afterwards
+                SetPredictionInputsEnabled(false);
                 modelInfoText.Text = "Training the cost model...";
                 await Task.Run(() => costPredictor.Train(CostPredictor.DefaultDataPath));
 
@@ -138,7 +140,19 @@ namespace TripMate
             finally
             {
                 predictButton.IsEnabled = true;
+                SetPredictionInputsEnabled(true);
             }
+        }
+
+        // Method to turn the prediction form on or off
+        private void SetPredictionInputsEnabled(bool enabled)
+        {
+            predictDestinationComboBox.IsEnabled = enabled;
+            accommodationComboBox.IsEnabled = enabled;
+            predictDaysTextBox.IsEnabled = enabled;
+            predictTravellersTextBox.IsEnabled = enabled;
+            predictActivitiesTextBox.IsEnabled = enabled;
+            fillFromTripButton.IsEnabled = enabled;
         }
 
         // Fill the prediction form with the current trip's details
