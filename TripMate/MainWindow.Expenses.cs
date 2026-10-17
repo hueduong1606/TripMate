@@ -203,6 +203,11 @@ namespace TripMate
             Expense? selected = expensesDataGrid.SelectedItem as Expense;
             if (selected == null) return;
 
+            // Ask before deleting, because this cannot be undone
+            MessageBoxResult answer = MessageBox.Show("Delete the expense \"" + selected.Description + "\"?",
+                "TripMate", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (answer != MessageBoxResult.Yes) return;
+
             using (var context = new Context())
             {
                 Expense? toRemove = context.Expenses.Include(x => x.Shares).FirstOrDefault(x => x.ExpenseId == selected.ExpenseId);
