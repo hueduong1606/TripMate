@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using TripMate.Core.Algorithms;
 using TripMate.Core.Data;
@@ -15,6 +15,8 @@ namespace TripMate
 {
     public partial class MainWindow
     {
+        private int locationRequestVersion;
+
         private readonly RouteOptimiser routeOptimiser = new RouteOptimiser();
         private readonly IGeocodingService geocodingService = new GeocodingService();
 
@@ -28,6 +30,17 @@ namespace TripMate
 
             // Redraw the itinerary whenever the trip data changes
             refreshTripViews += ShowItinerary;
+            tripSelected += () =>
+            {
+                InvalidateLocationSearch();
+                locationSearchTextBox.Clear();
+                latitudeTextBox.Clear();
+                longitudeTextBox.Clear();
+            };
+            locationSearchTextBox.TextChanged += (_, _) => InvalidateLocationSearch();
+            activityNameTextBox.TextChanged += (_, _) => InvalidateLocationSearch();
+            latitudeTextBox.TextChanged += (_, _) => InvalidateLocationSearch();
+            longitudeTextBox.TextChanged += (_, _) => InvalidateLocationSearch();
         }
 
         // Method to fill the day list and show the activities of the selected day
@@ -100,6 +113,14 @@ namespace TripMate
             if (currentTrip != null) ShowDayActivities();
         }
 
+        // Invalidating a lookup also permits a new search while the old one finishes.
+        private void InvalidateLocationSearch()
+        {
+            locationRequestVersion++;
+            foundLocationText.Text = "";
+            findLocationButton.IsEnabled = true;
+        }
+
         // Method to look up an activity's location with OpenStreetMap
         private async void findLocationButton_Click(object sender, RoutedEventArgs e)
         {
@@ -113,6 +134,9 @@ namespace TripMate
                 return;
             }
 
+            int tripId = currentTrip.TripId;
+            int requestVersion = ++locationRequestVersion;
+
             // Add the destination to the search so "Central Station" finds the right city
             if (!query.Contains(currentTrip.Destination, StringComparison.OrdinalIgnoreCase))
             {
@@ -125,12 +149,14 @@ namespace TripMate
                 SetStatus("Searching for " + query + "...");
 
                 GeoPlace? place = await geocodingService.FindPlaceAsync(query);
+                if (requestVersion != locationRequestVersion || currentTrip?.TripId != tripId) return;
                 if (place == null)
                 {
                     foundLocationText.Text = "No match found. You can type the coordinates instead.";
                     return;
                 }
 
+                findLocationButton.IsEnabled = true;
                 latitudeTextBox.Text = place.Latitude.ToString("0.000000");
                 longitudeTextBox.Text = place.Longitude.ToString("0.000000");
                 foundLocationText.Text = place.Name;
@@ -138,11 +164,12 @@ namespace TripMate
             }
             catch (Exception ex)
             {
-                foundLocationText.Text = "Location search failed: " + ex.Message;
+                if (requestVersion == locationRequestVersion && currentTrip?.TripId == tripId)
+                    foundLocationText.Text = "Location search failed: " + ex.Message;
             }
             finally
             {
-                findLocationButton.IsEnabled = true;
+                if (requestVersion == locationRequestVersion) findLocationButton.IsEnabled = true;
             }
         }
 
