@@ -95,7 +95,17 @@
                                 <Button x:Name="removeActivityButton" Content="Remove" Click="removeActivityButton_Click"/>
                             </StackPanel>
 
-                            <ListView x:Name="activitiesListView">
+                            <!-- Double-click or right-click an activity to edit it -->
+                            <ListView x:Name="activitiesListView" MouseDoubleClick="activitiesListView_MouseDoubleClick">
+                                <ListView.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Edit..." Click="editActivityMenuItem_Click"/>
+                                        <MenuItem Header="Move Up" Click="moveUpButton_Click"/>
+                                        <MenuItem Header="Move Down" Click="moveDownButton_Click"/>
+                                        <Separator/>
+                                        <MenuItem Header="Remove" Click="removeActivityButton_Click"/>
+                                    </ContextMenu>
+                                </ListView.ContextMenu>
                                 <ListView.View>
                                     <GridView>
                                         <GridViewColumn Header="#" Width="40" DisplayMemberBinding="{Binding Order}"/>
