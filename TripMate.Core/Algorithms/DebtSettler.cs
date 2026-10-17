@@ -28,7 +28,7 @@ namespace TripMate.Core.Algorithms
         // Override the ToString() method to show "Ann pays Ben 12.50"
         public override string ToString()
         {
-            return From + " pays " + To + " $" + Amount.ToString("0.00");
+            return From + " pays " + To + " " + Amount.ToString("0.00");
         }
     }
 
