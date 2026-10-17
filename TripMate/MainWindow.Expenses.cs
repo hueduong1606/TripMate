@@ -17,8 +17,8 @@ namespace TripMate
         private readonly DebtSettler debtSettler = new DebtSettler();
         private readonly ICurrencyService currencyService = new CurrencyService();
 
-        // Expense categories, used by the ComboBox and the pie chart
-        private static readonly string[] categories = { "Accommodation", "Food", "Transport", "Activities", "Shopping", "Other" };
+        // Expense categories, taken from the ExpenseCategory enum (used by the ComboBox and the pie chart)
+        private static readonly string[] categories = Enum.GetNames(typeof(ExpenseCategory));
 
         // Called from the MainWindow constructor
         partial void SetupExpensesTab()
@@ -119,55 +119,84 @@ namespace TripMate
             string currency = expenseCurrencyComboBox.SelectedItem as string ?? currentTrip.HomeCurrency;
             decimal amount = originalAmount;
 
+            // Remember which trip this expense belongs to. The user could switch
+            // or delete the trip while we wait for the exchange rate.
+            int tripId = currentTrip.TripId;
+            string homeCurrency = currentTrip.HomeCurrency;
+            string category = categoryComboBox.SelectedItem as string ?? "Other";
+            DateTime expenseDate = expenseDatePicker.SelectedDate ?? DateTime.Today;
+
             try
             {
                 addExpenseButton.IsEnabled = false;
 
                 // Convert to the currency the group settles up in
-                if (currency != currentTrip.HomeCurrency)
+                if (currency != homeCurrency)
                 {
-                    SetStatus("Converting " + currency + " to " + currentTrip.HomeCurrency + "...");
-                    amount = await currencyService.ConvertAsync(originalAmount, currency, currentTrip.HomeCurrency);
+                    try
+                    {
+                        SetStatus("Converting " + currency + " to " + homeCurrency + "...");
+                        amount = await currencyService.ConvertAsync(originalAmount, currency, homeCurrency);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Handle exceptions, e.g. no internet or a currency the API does not cover
+                        MessageBox.Show("Could not convert the currency: " + ex.Message + "\nPlease enter the amount in " + homeCurrency + ".", "TripMate");
+                        SetStatus("Expense not saved");
+                        return;
+                    }
                 }
+
+                // A different trip was selected (or the trip was deleted) while converting:
+                // don't save this expense to the wrong trip
+                if (currentTrip == null || currentTrip.TripId != tripId)
+                {
+                    MessageBox.Show("The selected trip changed before the expense was saved. Please add it again.", "TripMate");
+                    SetStatus("Expense not saved");
+                    return;
+                }
+
+                // Split equally, in whole cents
+                decimal[] shares = DebtSettler.SplitEqually(amount, sharedBy.Count);
+
+                Expense expense = new Expense
+                {
+                    Description = description,
+                    Category = category,
+                    Date = expenseDate,
+                    Amount = amount,
+                    OriginalAmount = originalAmount,
+                    OriginalCurrency = currency,
+                    PaidById = payer.MemberId,
+                    TripId = tripId
+                };
+                for (int i = 0; i < sharedBy.Count; i++)
+                {
+                    expense.Shares.Add(new ExpenseShare { MemberId = sharedBy[i].MemberId, ShareAmount = shares[i] });
+                }
+
+                using (var context = new Context())
+                {
+                    context.Expenses.Add(expense);
+                    context.SaveChanges();
+                }
+
+                expenseDescriptionTextBox.Clear();
+                expenseAmountTextBox.Clear();
+                ReloadCurrentTrip();
+                SetStatus(description + " added: " + Money(amount));
             }
             catch (Exception ex)
             {
-                // Handle exceptions, e.g. no internet or a currency the API does not cover
-                MessageBox.Show("Could not convert the currency: " + ex.Message + "\nPlease enter the amount in " + currentTrip.HomeCurrency + ".", "TripMate");
+                // e.g. the database file is locked
+                MessageBox.Show("Could not save the expense: " + ex.Message, "TripMate");
+                SetStatus("Expense not saved");
+            }
+            finally
+            {
+                // Always turn the button back on, whatever happened above
                 addExpenseButton.IsEnabled = true;
-                return;
             }
-
-            // Split equally, in whole cents
-            decimal[] shares = DebtSettler.SplitEqually(amount, sharedBy.Count);
-
-            Expense expense = new Expense
-            {
-                Description = description,
-                Category = categoryComboBox.SelectedItem as string ?? "Other",
-                Date = expenseDatePicker.SelectedDate ?? DateTime.Today,
-                Amount = amount,
-                OriginalAmount = originalAmount,
-                OriginalCurrency = currency,
-                PaidById = payer.MemberId,
-                TripId = currentTrip.TripId
-            };
-            for (int i = 0; i < sharedBy.Count; i++)
-            {
-                expense.Shares.Add(new ExpenseShare { MemberId = sharedBy[i].MemberId, ShareAmount = shares[i] });
-            }
-
-            using (var context = new Context())
-            {
-                context.Expenses.Add(expense);
-                context.SaveChanges();
-            }
-
-            expenseDescriptionTextBox.Clear();
-            expenseAmountTextBox.Clear();
-            addExpenseButton.IsEnabled = true;
-            ReloadCurrentTrip();
-            SetStatus(description + " added: " + Money(amount));
         }
 
         // Delete the selected expense and its shares
@@ -175,6 +204,11 @@ namespace TripMate
         {
             Expense? selected = expensesDataGrid.SelectedItem as Expense;
             if (selected == null) return;
+
+            // Ask before deleting, because this cannot be undone
+            MessageBoxResult answer = MessageBox.Show("Delete the expense \"" + selected.Description + "\"?",
+                "TripMate", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (answer != MessageBoxResult.Yes) return;
 
             using (var context = new Context())
             {

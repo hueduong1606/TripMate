@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using Microsoft.EntityFrameworkCore;
 using TripMate.Core.Data;
@@ -103,12 +103,46 @@ namespace TripMate
                 currentTrip = null;
                 mainTabs.IsEnabled = false;
                 tripSummaryText.Text = "Click New Trip to get started";
+                ClearTripViews();
                 return;
             }
 
             // Select the requested trip, or the first one
             Trip? toSelect = trips.FirstOrDefault(t => t.TripId == selectTripId) ?? trips[0];
             tripComboBox.SelectedItem = toSelect;
+        }
+
+
+        // Method to empty every tab when there is no trip left to show
+        private void ClearTripViews()
+        {
+            // Group tab
+            overviewTitleText.Text = "";
+            overviewText.Text = "";
+            membersListBox.ItemsSource = null;
+
+            // Itinerary tab
+            dayComboBox.ItemsSource = null;
+            activitiesListView.ItemsSource = null;
+
+            // Expenses tab
+            expensesDataGrid.ItemsSource = null;
+            expenseTotalText.Text = "";
+            balancesListBox.ItemsSource = null;
+            paidByComboBox.ItemsSource = null;
+            splitListBox.ItemsSource = null;
+
+            // Explore and Insights tabs
+            attractionDayComboBox.ItemsSource = null;
+            convertResultText.Text = "";
+            rateInfoText.Text = "";
+            categoryPlot.Model = null;
+            memberPlot.Model = null;
+            dailyPlot.Model = null;
+            categoryLegendText.Text = "";
+
+            // Let every tab clear its own results too (settle-up, weather, prediction...)
+            if (tripSelected != null) tripSelected();
         }
 
         // Method to load the selected trip with everything that belongs to it
@@ -165,9 +199,9 @@ namespace TripMate
                 }
                 LoadTrips(window.NewTrip.TripId);
                 SetStatus("Created " + window.NewTrip.Name);
-
             }
         }
+
         // Add the ready-made Tokyo trip, useful for a demo
         private void sampleTripButton_Click(object sender, RoutedEventArgs e)
         {
@@ -180,7 +214,6 @@ namespace TripMate
             LoadTrips(sample.TripId);
             SetStatus("Sample trip added. Try Optimise Route on day 1 and Settle Up on the Expenses tab.");
         }
-
 
         // Delete the current trip after asking the user to confirm
         private void deleteTripButton_Click(object sender, RoutedEventArgs e)
