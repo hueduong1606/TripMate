@@ -2,7 +2,7 @@
 
 
 
-A WPF desktop app (.NET 8) that helps students plan trips together, with a focus on
+A WPF desktop app (.NET 9) that helps students plan trips together, with a focus on
 
 group travel and cost-splitting.
 
