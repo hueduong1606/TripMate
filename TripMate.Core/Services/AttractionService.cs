@@ -32,7 +32,7 @@ namespace TripMate.Core.Services
             return attractions;
         }
 
-        // Method to filter the results with any condition (Week 7: Predicate delegate)
+        // Method to filter the results with any condition
         // e.g. FilterAttractions(list, a => a.Name.Contains("Museum"))
         public static List<Attraction> FilterAttractions(List<Attraction> attractions, Predicate<Attraction> condition)
         {

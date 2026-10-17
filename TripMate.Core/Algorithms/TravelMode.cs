@@ -1,7 +1,6 @@
 ﻿namespace TripMate.Core.Algorithms
 {
     // Base class for the different ways of getting around a city
-    // (Week 5: Inheritance, Abstract Classes and Method Overriding).
     // The route optimiser only knows about TravelMode, so a new mode (e.g. cycling)
     // can be added as a new subclass without changing any other code.
     public abstract class TravelMode

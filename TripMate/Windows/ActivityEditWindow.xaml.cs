@@ -11,7 +11,7 @@ namespace TripMate.Windows
         private readonly Activity activity;
         private readonly IGeocodingService geocodingService;
 
-        // Constructor overloading (Week 4): MainWindow normally uses the short version...
+        // Constructor overloading: MainWindow normally uses the short version...
         public ActivityEditWindow(Activity activity, List<TripDay> days, string destination)
             : this(activity, days, destination, new GeocodingService())
         {

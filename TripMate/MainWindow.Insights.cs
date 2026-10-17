@@ -52,7 +52,7 @@ namespace TripMate
         {
             if (currentTrip == null) return;
 
-            // 1. Pie chart: spending by category (LINQ GroupBy, like the Week 7 file extension example)
+            // 1. Pie chart: spending by category (LINQ GroupBy)
             PlotModel categoryModel = new PlotModel();
             PieSeries pie = new PieSeries { StrokeThickness = 1, InsideLabelPosition = 0.7, InsideLabelFormat = "{2:0}%", OutsideLabelFormat = null, AngleSpan = 360, StartAngle = -90 };
             var byCategory = currentTrip.SpendingExpenses

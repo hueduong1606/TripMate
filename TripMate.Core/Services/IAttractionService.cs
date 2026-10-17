@@ -2,7 +2,7 @@
 
 namespace TripMate.Core.Services
 {
-    // Interface for searching places to visit near a point (Week 5: Interfaces)
+    // Interface for searching places to visit near a point
     public interface IAttractionService
     {
         Task<List<Attraction>> SearchNearbyAsync(double latitude, double longitude, int radiusKm);

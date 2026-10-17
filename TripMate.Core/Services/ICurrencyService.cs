@@ -1,6 +1,6 @@
 namespace TripMate.Core.Services
 {
-    // Interface for exchange rates and currency conversion (Week 5: Interfaces)
+    // Interface for exchange rates and currency conversion
     public interface ICurrencyService
     {
         // Date of the last rate downloaded (rates are published once a day)

@@ -11,7 +11,7 @@
 namespace TripMate.Core.Algorithms
 {
     // Delegate for any method that measures the distance between two places
-    // (Week 7: Delegates). The default is the Haversine extension method.
+    // The default is the Haversine extension method.
     public delegate double DistanceCalculator(IGeoLocated from, IGeoLocated to);
 
     // Result of optimising one day
@@ -93,7 +93,7 @@ namespace TripMate.Core.Algorithms
         }
 
         // Method to estimate the travel time of a route in minutes, leg by leg.
-        // Overloaded (Week 4: Method Overloading): pass any Func<double, double>...
+        // Overloaded: pass any Func<double, double>...
         public double TravelMinutes<T>(IList<T> route, Func<double, double> minutesForLeg) where T : IGeoLocated
         {
             double minutes = 0.0;

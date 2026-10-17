@@ -2,7 +2,7 @@
 
 namespace TripMate.Core.Algorithms
 {
-    // Extension methods for anything that has a location (Week 6: Extension Methods)
+    // Extension methods for anything that has a location
     public static class GeoExtensions
     {
         private const double EarthRadiusKm = 6371.0;

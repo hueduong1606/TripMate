@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- EF Core with the SQLite provider (Week 8: EF Core supported databases) -->
+    <!-- EF Core with the SQLite provider -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.21" />
     <!-- ML.NET for the trip cost prediction model -->
     <PackageReference Include="Microsoft.ML" Version="4.0.2" />

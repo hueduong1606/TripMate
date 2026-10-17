@@ -177,7 +177,7 @@ namespace TripMate
                 // Only update the list if the user is still on the same trip
                 if (IsExploreRequestOutdated(requestedTripId, requestVersion)) return;
 
-                // Optional keyword filter, passed as a Predicate using an anonymous method (Week 7)
+                // Optional keyword filter, passed as a Predicate using an anonymous method
                 if (keyword != "")
                 {
                     found = AttractionService.FilterAttractions(found, delegate (Attraction a)
@@ -229,7 +229,7 @@ namespace TripMate
             AddActivity(attraction.Name, day.DayNumber, 60, attraction.Latitude, attraction.Longitude, "From attraction search");
         }
 
-        // Open the Wikipedia page in the default browser (like OpenUrl in the Week 10 tutorial)
+        // Open the Wikipedia page in the default browser
         private void openAttractionButton_Click(object sender, RoutedEventArgs e)
         {
             Attraction? attraction = attractionsListBox.SelectedItem as Attraction;

@@ -21,7 +21,7 @@ using TripMate.Windows;
 
 namespace TripMate
 {
-    // Delegate used to tell every tab that something happened (Week 7: Multicast Delegates)
+    // Delegate used to tell every tab that something happened
     public delegate void RefreshHandler();
 
     public partial class MainWindow : Window
