@@ -98,9 +98,9 @@ namespace TripMate
                 MessageBox.Show("Please enter a description.", "TripMate");
                 return;
             }
-            if (!decimal.TryParse(expenseAmountTextBox.Text, out decimal originalAmount) || originalAmount <= 0)
+            if (!decimal.TryParse(expenseAmountTextBox.Text, out decimal originalAmount) || originalAmount <= 0 || decimal.Round(originalAmount, 2) != originalAmount)
             {
-                MessageBox.Show("Please enter an amount greater than 0.", "TripMate");
+                MessageBox.Show("Please enter an amount greater than 0 with at most two decimal places.", "TripMate");
                 return;
             }
             Member? payer = paidByComboBox.SelectedItem as Member;
@@ -153,6 +153,14 @@ namespace TripMate
                 {
                     MessageBox.Show("The selected trip changed before the expense was saved. Please add it again.", "TripMate");
                     SetStatus("Expense not saved");
+                    return;
+                }
+
+                // Store and split the same whole-cent amount.
+                amount = decimal.Round(amount, 2, MidpointRounding.AwayFromZero);
+                if (amount <= 0)
+                {
+                    MessageBox.Show("The converted amount is less than one cent. Please enter a larger amount.", "TripMate");
                     return;
                 }
 
