@@ -148,6 +148,8 @@ namespace TripMate
             finally
             {
                 weatherButton.IsEnabled = true;
+                // The request stopped early (e.g. the place was not found): clear the old message
+                if (statusText.Text == "Getting the forecast...") SetStatus("Ready");
             }
         }
 
@@ -207,6 +209,8 @@ namespace TripMate
             finally
             {
                 searchAttractionsButton.IsEnabled = true;
+                // The request stopped early (e.g. the place was not found): clear the old message
+                if (statusText.Text == "Searching for things to see...") SetStatus("Ready");
             }
         }
 
