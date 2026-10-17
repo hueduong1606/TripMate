@@ -123,6 +123,8 @@ namespace TripMate
             // or delete the trip while we wait for the exchange rate.
             int tripId = currentTrip.TripId;
             string homeCurrency = currentTrip.HomeCurrency;
+            string category = categoryComboBox.SelectedItem as string ?? "Other";
+            DateTime expenseDate = expenseDatePicker.SelectedDate ?? DateTime.Today;
 
             try
             {
@@ -160,8 +162,8 @@ namespace TripMate
                 Expense expense = new Expense
                 {
                     Description = description,
-                    Category = categoryComboBox.SelectedItem as string ?? "Other",
-                    Date = expenseDatePicker.SelectedDate ?? DateTime.Today,
+                    Category = category,
+                    Date = expenseDate,
                     Amount = amount,
                     OriginalAmount = originalAmount,
                     OriginalCurrency = currency,
