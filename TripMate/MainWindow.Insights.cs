@@ -36,11 +36,15 @@ namespace TripMate
             TrainModelIfNeeded();
         }
 
-        // Clear the old prediction when a different trip is chosen
+        // Clear the old prediction when a different trip is chosen,
+        // and fill the form with the new trip's details
         private void ClearPrediction()
         {
             predictionRequestVersion++;
             predictionResultText.Text = "";
+
+            // Only once the model is trained, because it supplies the list of destinations
+            if (costPredictor.IsTrained) fillFromTripButton_Click(this, new RoutedEventArgs());
         }
 
         // Method to draw the three spending charts with OxyPlot
