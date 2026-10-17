@@ -20,14 +20,20 @@ namespace TripMate
             tripSelected += SetDefaultCurrencies;
         }
 
-        // Default the converter to the trip's home currency -> local currency
+        // Default the converter to the trip's home currency -> local currency.
+        // Falls back to AUD when a currency has no live rates (e.g. VND).
         private void SetDefaultCurrencies()
         {
             if (currentTrip == null) return;
-            fromCurrencyComboBox.Text = currentTrip.HomeCurrency;
-            toCurrencyComboBox.Text = currentTrip.LocalCurrency;
+
+            string from = CurrencyService.IsSupported(currentTrip.HomeCurrency) ? currentTrip.HomeCurrency.ToUpper() : "AUD";
+            bool localSupported = CurrencyService.IsSupported(currentTrip.LocalCurrency);
+            string to = localSupported ? currentTrip.LocalCurrency.ToUpper() : from;
+
+            fromCurrencyComboBox.SelectedItem = from;
+            toCurrencyComboBox.SelectedItem = to;
             convertResultText.Text = "";
-            rateInfoText.Text = "";
+            rateInfoText.Text = localSupported ? "" : "Live rates are not available for " + currentTrip.LocalCurrency + ".";
         }
 
         // Validate the amount and convert it with the currency service
