@@ -6,14 +6,14 @@ namespace TripMate.UnitTests
     [TestFixture]
     public class DebtSettlerTests
     {
-        private DebtSettler _settler = null!;
+        private DebtSettler settler = null!;
 
         // Runs before every test
         [SetUp]
         public void Setup()
         {
             // Arrange: a new settler for every test
-            _settler = new DebtSettler();
+            settler = new DebtSettler();
         }
 
         // Helper: apply the transfers to the balances and check everyone ends up square
@@ -93,7 +93,7 @@ namespace TripMate.UnitTests
             Member[] members = { ann, ben, cat };
 
             // Act: record every transfer in the plan as paid
-            List<Transfer> plan = _settler.Settle(DebtSettler.CalculateBalances(members, trip.Expenses));
+            List<Transfer> plan = settler.Settle(DebtSettler.CalculateBalances(members, trip.Expenses));
             foreach (Transfer t in plan)
             {
                 Member from = members.First(m => m.Name == t.From);
@@ -118,7 +118,7 @@ namespace TripMate.UnitTests
             };
 
             // Act
-            List<Transfer> transfers = _settler.Settle(balances);
+            List<Transfer> transfers = settler.Settle(balances);
 
             // Assert
             Assert.That(transfers.Count, Is.EqualTo(2), "Ben and Cat should each pay Ann once.");
@@ -137,8 +137,8 @@ namespace TripMate.UnitTests
             };
 
             // Act
-            List<Transfer> exact = _settler.Settle(balances);
-            List<Transfer> greedy = _settler.GreedySettle(balances);
+            List<Transfer> exact = settler.Settle(balances);
+            List<Transfer> greedy = settler.GreedySettle(balances);
 
             // Assert
             Assert.That(exact.Count, Is.EqualTo(4), "Fewest transfers should be 4.");
@@ -155,7 +155,7 @@ namespace TripMate.UnitTests
             Dictionary<string, decimal> balances = new Dictionary<string, decimal> { { "Ann", 0m }, { "Ben", 0m } };
 
             // Act and Assert
-            Assert.That(_settler.Settle(balances), Is.Empty, "Nobody should need to pay.");
+            Assert.That(settler.Settle(balances), Is.Empty, "Nobody should need to pay.");
         }
 
         // Balances that don't add up to zero are rejected
@@ -166,7 +166,7 @@ namespace TripMate.UnitTests
             Dictionary<string, decimal> balances = new Dictionary<string, decimal> { { "Ann", 10m }, { "Ben", -5m } };
 
             // Act and Assert
-            Assert.Throws<ArgumentException>(() => _settler.Settle(balances));
+            Assert.Throws<ArgumentException>(() => settler.Settle(balances));
         }
 
         // Random groups of 5 to 25 people always settle, with at most n - 1 transfers
@@ -190,11 +190,11 @@ namespace TripMate.UnitTests
             balances["P" + (people - 1)] = -total;
 
             // Act
-            List<Transfer> transfers = _settler.Settle(balances);
+            List<Transfer> transfers = settler.Settle(balances);
 
             // Assert
             Assert.That(transfers.Count, Is.LessThanOrEqualTo(people - 1), "Never more than n - 1 transfers.");
-            Assert.That(transfers.Count, Is.LessThanOrEqualTo(_settler.GreedySettle(balances).Count), "Never worse than the greedy rule.");
+            Assert.That(transfers.Count, Is.LessThanOrEqualTo(settler.GreedySettle(balances).Count), "Never worse than the greedy rule.");
             AssertEveryoneSquare(balances, transfers);
         }
     }
