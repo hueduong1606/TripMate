@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <!-- EF Core with the SQLite provider (Week 8: EF Core supported databases) -->
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.31" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.21" />
     <!-- ML.NET for the trip cost prediction model -->
     <PackageReference Include="Microsoft.ML" Version="4.0.2" />
     <PackageReference Include="Microsoft.ML.FastTree" Version="4.0.2" />
