@@ -27,6 +27,8 @@ namespace TripMate.Core.Services
 
         // Rates already downloaded this session, so we don't ask the API twice
         private readonly Dictionary<string, decimal> rateCache = new Dictionary<string, decimal>();
+        // The date each cached rate was published
+        private readonly Dictionary<string, DateTime> rateDates = new Dictionary<string, DateTime>();
 
         public DateTime? LastRateDate { get; private set; }
 
@@ -47,7 +49,12 @@ namespace TripMate.Core.Services
         {
             from = from.ToUpper();
             to = to.ToUpper();
-            if (from == to) return 1m;
+            if (from == to)
+            {
+                // No exchange rate is involved, so there is no rate date to show
+                LastRateDate = null;
+                return 1m;
+            }
 
             if (!IsSupported(from) || !IsSupported(to))
             {
@@ -55,15 +62,22 @@ namespace TripMate.Core.Services
             }
 
             string key = from + to;
-            if (rateCache.ContainsKey(key)) return rateCache[key];
+            if (rateCache.ContainsKey(key))
+            {
+                // Show the date of this rate, not of whichever rate was downloaded last
+                LastRateDate = rateDates[key];
+                return rateCache[key];
+            }
 
             // e.g. https://api.frankfurter.dev/v1/latest?base=AUD&symbols=JPY
             string url = "https://api.frankfurter.dev/v1/latest?base=" + from + "&symbols=" + to;
             using (JsonDocument doc = await ApiClient.GetJsonAsync(url))
             {
                 decimal rate = doc.RootElement.GetProperty("rates").GetProperty(to).GetDecimal();
-                LastRateDate = DateTime.Parse(doc.RootElement.GetProperty("date").GetString()!);
+                DateTime rateDate = DateTime.Parse(doc.RootElement.GetProperty("date").GetString()!);
+                LastRateDate = rateDate;
                 rateCache[key] = rate;
+                rateDates[key] = rateDate;
                 return rate;
             }
         }
