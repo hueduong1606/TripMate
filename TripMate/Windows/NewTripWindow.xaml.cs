@@ -134,6 +134,21 @@ namespace TripMate.Windows
                 return;
             }
 
+            // The group settles up in this currency, so live rates must be available for it
+            string homeCurrency = homeCurrencyComboBox.Text.Trim().ToUpper();
+            string localCurrency = localCurrencyComboBox.Text.Trim().ToUpper();
+            if (!CurrencyService.IsSupported(homeCurrency))
+            {
+                MessageBox.Show("Please choose a currency from the list to settle up in, e.g. AUD.", "TripMate");
+                return;
+            }
+            // The local currency can be any 3-letter code (e.g. VND), even without live rates
+            if (localCurrency.Length != 3 || !localCurrency.All(char.IsLetter))
+            {
+                MessageBox.Show("The local currency must be a 3-letter code, e.g. JPY.", "TripMate");
+                return;
+            }
+
             // Create the trip and its members
             NewTrip = new Trip
             {
@@ -143,8 +158,8 @@ namespace TripMate.Windows
                 Longitude = longitude,
                 StartDate = startDatePicker.SelectedDate.Value,
                 EndDate = endDatePicker.SelectedDate.Value,
-                HomeCurrency = homeCurrencyComboBox.Text.Trim().ToUpper(),
-                LocalCurrency = localCurrencyComboBox.Text.Trim().ToUpper()
+                HomeCurrency = homeCurrency,
+                LocalCurrency = localCurrency
             };
             foreach (string name in names)
             {
