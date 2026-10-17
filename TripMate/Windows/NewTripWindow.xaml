@@ -26,7 +26,7 @@
         <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" x:Name="tripNameTextBox" Text="Semester break"/>
 
         <Label Grid.Row="1" Content="Destination:"/>
-        <TextBox Grid.Row="1" Grid.Column="1" x:Name="destinationTextBox"/>
+        <TextBox Grid.Row="1" Grid.Column="1" x:Name="destinationTextBox" TextChanged="destinationTextBox_TextChanged"/>
         <Button Grid.Row="1" Grid.Column="2" x:Name="lookupButton" Content="Look up" Click="lookupButton_Click"/>
 
         <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" x:Name="locationText" Margin="4,0,4,4"

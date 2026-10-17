@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 using TripMate.Core.Models;
 using TripMate.Core.Services;
 
@@ -12,6 +13,9 @@ namespace TripMate.Windows
 
         // Coordinates found by the Look up button
         private double? latitude, longitude;
+
+        // The destination name those coordinates belong to
+        private string? lookedUpDestination;
 
         public NewTripWindow()
         {
@@ -47,8 +51,19 @@ namespace TripMate.Windows
                 lookupButton.IsEnabled = false;
                 locationText.Text = "Searching...";
 
-                GeoPlace? place = await geocodingService.FindCityAsync(destinationTextBox.Text.Trim());
+                // Remember what was searched for, in case the user edits the box while waiting
+                string searchedFor = destinationTextBox.Text.Trim();
+                GeoPlace? place = await geocodingService.FindCityAsync(searchedFor);
+
+                // The destination was changed during the search, so this result is out of date
+                if (destinationTextBox.Text.Trim() != searchedFor)
+                {
+                    locationText.Text = "The destination changed during the search. Please look it up again.";
+                    return;
+                }
+
                 if (place == null)
+
                 {
                     locationText.Text = "City not found. You can still create the trip without it.";
                     return;
@@ -57,6 +72,8 @@ namespace TripMate.Windows
                 // Save the coordinates and suggest the local currency
                 latitude = place.Latitude;
                 longitude = place.Longitude;
+                // Set this before changing the text, so TextChanged keeps the coordinates
+                lookedUpDestination = place.Name;
                 destinationTextBox.Text = place.Name;
                 localCurrencyComboBox.Text = CurrencyService.CurrencyForCountry(place.CountryCode);
                 locationText.Text = "Found: " + place + " (" + place.Latitude.ToString("0.00") + ", " + place.Longitude.ToString("0.00") + ")";
@@ -69,6 +86,18 @@ namespace TripMate.Windows
             finally
             {
                 lookupButton.IsEnabled = true;
+            }
+        }
+
+        // The destination text changed: forget coordinates that belong to a different place
+        private void destinationTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (latitude.HasValue && destinationTextBox.Text.Trim() != lookedUpDestination)
+            {
+                latitude = null;
+                longitude = null;
+                lookedUpDestination = null;
+                locationText.Text = "Look up the city to enable weather and attraction search.";
             }
         }
 
