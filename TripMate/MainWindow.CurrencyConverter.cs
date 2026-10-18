@@ -58,6 +58,8 @@ namespace TripMate
         // Validate the amount and convert it with the currency service
         private async void convertButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!convertButton.IsEnabled || currentTrip == null) return;
+
             if (!decimal.TryParse(convertAmountTextBox.Text, out decimal amount) || amount < 0)
             {
                 MessageBox.Show("Please enter a valid amount.", "TripMate");
@@ -75,18 +77,24 @@ namespace TripMate
             convertResultText.Text = "";
             rateInfoText.Text = "";
 
+            bool IsCurrentRequest() => requestVersion == conversionRequestVersion
+                && currentTrip?.TripId == tripId
+                && fromCurrencyComboBox.Text == from && toCurrencyComboBox.Text == to
+                && decimal.TryParse(convertAmountTextBox.Text, out decimal currentAmount)
+                && currentAmount == amount;
+
             try
             {
                 convertButton.IsEnabled = false;
                 decimal rate = await currencyService.GetRateAsync(from, to);
-                if (requestVersion != conversionRequestVersion || currentTrip?.TripId != tripId) return;
+                if (!IsCurrentRequest()) return;
                 convertResultText.Text = amount.ToString("0.00") + " " + from + " = " + (amount * rate).ToString("0.00") + " " + to;
                 rateInfoText.Text = "1 " + from + " = " + rate.ToString("0.####") + " " + to +
                                     (currencyService.LastRateDate.HasValue ? "  (ECB rate from " + currencyService.LastRateDate.Value.ToString("dd MMM yyyy") + ")" : "");
             }
             catch (Exception ex)
             {
-                if (requestVersion != conversionRequestVersion || currentTrip?.TripId != tripId) return;
+                if (!IsCurrentRequest()) return;
                 convertResultText.Text = "";
                 rateInfoText.Text = "Conversion failed: " + ex.Message;
             }

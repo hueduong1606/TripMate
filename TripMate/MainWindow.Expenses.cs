@@ -160,7 +160,9 @@ namespace TripMate
                 amount = decimal.Round(amount, 2, MidpointRounding.AwayFromZero);
                 if (amount <= 0)
                 {
-                    MessageBox.Show("The converted amount is less than one cent. Please enter a larger amount.", "TripMate");
+                    MessageBox.Show("The converted amount is less than 0.01 in " + homeCurrency +
+                        ". Please enter a larger amount.", "TripMate");
+                    SetStatus("Expense not saved");
                     return;
                 }
 

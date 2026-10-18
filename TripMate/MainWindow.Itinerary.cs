@@ -30,17 +30,23 @@ namespace TripMate
 
             // Redraw the itinerary whenever the trip data changes
             refreshTripViews += ShowItinerary;
-            tripSelected += () =>
-            {
-                InvalidateLocationSearch();
-                locationSearchTextBox.Clear();
-                latitudeTextBox.Clear();
-                longitudeTextBox.Clear();
-            };
+            tripSelected += ClearActivityForm;
             locationSearchTextBox.TextChanged += (_, _) => InvalidateLocationSearch();
             activityNameTextBox.TextChanged += (_, _) => InvalidateLocationSearch();
             latitudeTextBox.TextChanged += (_, _) => InvalidateLocationSearch();
             longitudeTextBox.TextChanged += (_, _) => InvalidateLocationSearch();
+        }
+
+        // Clear all activity inputs and invalidate searches from the previous trip.
+        private void ClearActivityForm()
+        {
+            InvalidateLocationSearch();
+            activityNameTextBox.Clear();
+            locationSearchTextBox.Clear();
+            latitudeTextBox.Clear();
+            longitudeTextBox.Clear();
+            notesTextBox.Clear();
+            durationTextBox.Text = "60";
         }
 
         // Method to fill the day list and show the activities of the selected day
@@ -153,6 +159,7 @@ namespace TripMate
                 if (place == null)
                 {
                     foundLocationText.Text = "No match found. You can type the coordinates instead.";
+                    SetStatus("No location found");
                     return;
                 }
 
@@ -165,7 +172,10 @@ namespace TripMate
             catch (Exception ex)
             {
                 if (requestVersion == locationRequestVersion && currentTrip?.TripId == tripId)
+                {
                     foundLocationText.Text = "Location search failed: " + ex.Message;
+                    SetStatus("Location search failed");
+                }
             }
             finally
             {
@@ -186,9 +196,9 @@ namespace TripMate
                 MessageBox.Show("Please enter the activity name.", "TripMate");
                 return;
             }
-            if (!int.TryParse(durationTextBox.Text, out int duration) || duration < 0)
+            if (!int.TryParse(durationTextBox.Text, out int duration) || duration < 0 || duration > 24 * 60)
             {
-                MessageBox.Show("Duration must be a whole number of minutes.", "TripMate");
+                MessageBox.Show("Duration must be a whole number of minutes between 0 and 1440.", "TripMate");
                 return;
             }
 
@@ -283,6 +293,10 @@ namespace TripMate
         {
             Activity? selected = activitiesListView.SelectedItem as Activity;
             if (selected == null) return;
+
+            MessageBoxResult answer = MessageBox.Show("Remove \"" + selected.Name + "\" from the itinerary?",
+                "TripMate", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (answer != MessageBoxResult.Yes) return;
 
             using (var context = new Context())
             {

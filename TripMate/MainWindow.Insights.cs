@@ -167,7 +167,7 @@ namespace TripMate
             predictDestinationComboBox.SelectedIndex = -1;
             if (currentTrip == null) return;
 
-            // Pick the destination if the model knows it
+            // Pick a supported destination; never reuse the previous trip's city
             string? known = costPredictor.Destinations.FirstOrDefault(d => d.Equals(currentTrip.Destination, StringComparison.OrdinalIgnoreCase));
             predictDestinationComboBox.SelectedItem = known;
             if (known == null)
