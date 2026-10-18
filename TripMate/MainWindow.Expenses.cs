@@ -103,6 +103,12 @@ namespace TripMate
                 MessageBox.Show("Please enter an amount greater than 0.", "TripMate");
                 return;
             }
+            // Money is shared out in whole cents, so more than two decimal places cannot be split exactly
+            if (originalAmount != Math.Round(originalAmount, 2))
+            {
+                MessageBox.Show("Please enter the amount with at most two decimal places, e.g. 12.50.", "TripMate");
+                return;
+            }
             Member? payer = paidByComboBox.SelectedItem as Member;
             if (payer == null)
             {
@@ -152,6 +158,15 @@ namespace TripMate
                 if (currentTrip == null || currentTrip.TripId != tripId)
                 {
                     MessageBox.Show("The selected trip changed before the expense was saved. Please add it again.", "TripMate");
+                    SetStatus("Expense not saved");
+                    return;
+                }
+
+                amount = decimal.Round(amount, 2, MidpointRounding.AwayFromZero);
+                if (amount <= 0)
+                {
+                    MessageBox.Show("The converted amount is less than 0.01 in " + homeCurrency +
+                        ". Please enter a larger amount.", "TripMate");
                     SetStatus("Expense not saved");
                     return;
                 }
