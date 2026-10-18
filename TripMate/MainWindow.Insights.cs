@@ -64,7 +64,7 @@ namespace TripMate
                 pie.Slices.Add(new PieSlice(c.Category, (double)c.Total));
             }
             categoryModel.Series.Add(pie);
-            // Keep category names outside small slices so their labels cannot overlap.
+            // Show category names in a separate legend, so labels on small slices cannot overlap.
             double categoryTotal = pie.Slices.Sum(s => s.Value);
             categoryLegendText.Text = categoryTotal > 0
                 ? string.Join("\n", pie.Slices.Select(s => s.Label + " (" + (s.Value / categoryTotal * 100).ToString("0") + "%)"))

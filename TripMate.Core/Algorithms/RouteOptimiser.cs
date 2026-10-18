@@ -53,7 +53,7 @@ namespace TripMate.Core.Algorithms
             this.distance = distance;
         }
 
-        // Method to optimise the visiting order. The stops must already be in their current order.
+        // Method to optimise the visiting order. The stops must be passed in the order the user currently has them.
         public RouteResult<T> Optimise<T>(IList<T> stops) where T : IGeoLocated
         {
             RouteResult<T> result = new RouteResult<T>();

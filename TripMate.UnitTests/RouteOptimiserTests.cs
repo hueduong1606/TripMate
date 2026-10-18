@@ -74,7 +74,7 @@ namespace TripMate.UnitTests
         [Test]
         public void Test_TwoOpt_FixesCrossingRoute()
         {
-            // Arrange: a route that crosses itself (0,0) -> (1,1) -> (1,0) -> (0,1) ...
+            // Arrange: a route that crosses itself (0,0) -> (1,1) -> (0,1) -> (1,0) -> (2,0)
             // Using a simple "Manhattan" distance delegate instead of Haversine
             DistanceCalculator manhattan = (a, b) => Math.Abs(a.Latitude!.Value - b.Latitude!.Value) + Math.Abs(a.Longitude!.Value - b.Longitude!.Value);
             RouteOptimiser optimiser = new RouteOptimiser(manhattan);
@@ -117,8 +117,9 @@ namespace TripMate.UnitTests
             }
         }
 
-        // 5 km at 5 km/h with the 1.3 detour factor = 78 minutes walking;
-        // public transport adds a 5 minute wait, driving adds 8 minutes to park
+        // Each distance takes 78 minutes of travel with the 1.3 detour factor
+        // (5 km walking, 20 km by public transport, 35 km driving);
+        // public transport then adds a 5 minute wait, and driving adds 8 minutes to park
         // Polymorphism: each TravelMode subclass works out the time its own way
         [TestCase(0, 5, 78)]
         [TestCase(1, 20, 83)]
