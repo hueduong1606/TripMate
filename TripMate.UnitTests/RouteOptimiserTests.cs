@@ -1,4 +1,4 @@
-﻿using TripMate.Core.Algorithms;
+using TripMate.Core.Algorithms;
 using TripMate.Core.Models;
 
 namespace TripMate.UnitTests
@@ -10,6 +10,29 @@ namespace TripMate.UnitTests
         private static Activity Stop(string name, double? lat, double? lon)
         {
             return new Activity { Name = name, Latitude = lat, Longitude = lon };
+        }
+
+        [TestCase(double.NaN, 0)]
+        [TestCase(0, double.NaN)]
+        [TestCase(double.PositiveInfinity, 0)]
+        [TestCase(0, double.NegativeInfinity)]
+        [TestCase(91, 0)]
+        [TestCase(0, 181)]
+        [TestCase(-91, 0)]
+        [TestCase(0, -181)]
+        public void Test_Optimise_InvalidCoordinatesAreUnlocated(double latitude, double longitude)
+        {
+            Activity invalid = Stop("Invalid", latitude, longitude);
+            RouteResult<Activity> result = new RouteOptimiser().Optimise(new[]
+            {
+                Stop("Start", 0, 0), invalid, Stop("End", 1, 1)
+            });
+
+            Assert.That(result.Unlocated, Does.Contain(invalid));
+            Assert.That(result.Route, Does.Not.Contain(invalid));
+            Assert.That(result.Route.Count, Is.EqualTo(2));
+            Assert.That(double.IsFinite(result.OriginalDistanceKm), Is.True);
+            Assert.That(double.IsFinite(result.OptimisedDistanceKm), Is.True);
         }
 
         // Sydney to Melbourne is about 714 km in a straight line
