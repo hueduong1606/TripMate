@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using TripMate.Core.Models;
 using TripMate.Core.Services;
@@ -119,7 +119,7 @@ namespace TripMate.Windows
                 MessageBox.Show("The end date must be on or after the start date.", "TripMate");
                 return;
             }
-            if ((endDatePicker.SelectedDate.Value - startDatePicker.SelectedDate.Value).TotalDays > 60)
+            if ((endDatePicker.SelectedDate.Value - startDatePicker.SelectedDate.Value).Days + 1 > 60)
             {
                 MessageBox.Show("Trips can be at most 60 days long.", "TripMate");
                 return;
