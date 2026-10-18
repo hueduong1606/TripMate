@@ -164,9 +164,13 @@ namespace TripMate
         {
             if (currentTrip == null) return;
 
-            // Pick the destination if the model knows it
+            // Pick the destination if the model knows it; otherwise clear the choice,
+            // so the prediction is never silently for the previous trip's city
             string? known = costPredictor.Destinations.FirstOrDefault(d => d.Equals(currentTrip.Destination, StringComparison.OrdinalIgnoreCase));
-            if (known != null) predictDestinationComboBox.SelectedItem = known;
+            predictDestinationComboBox.SelectedItem = known;
+            predictionResultText.Text = known == null
+                ? "The model has no data for " + currentTrip.Destination + ". Choose the most similar destination from the list."
+                : "";
 
             predictDaysTextBox.Text = currentTrip.NumberOfDays.ToString();
             predictTravellersTextBox.Text = Math.Max(1, currentTrip.Members.Count).ToString();
