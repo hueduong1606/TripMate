@@ -53,15 +53,29 @@ namespace TripMate.Windows
                 query = query + ", " + Destination;
             }
 
+            // Remember the coordinates before searching, to notice if the user types new ones meanwhile
+            string latitudeBefore = latitudeTextBox.Text;
+            string longitudeBefore = longitudeTextBox.Text;
+
             try
             {
+                // Don't let the window be saved half-way through a search
                 findButton.IsEnabled = false;
+                saveButton.IsEnabled = false;
                 GeoPlace? place = await geocodingService.FindPlaceAsync(query);
                 if (place == null)
                 {
                     locationInfoText.Text = "No match found. You can type the coordinates instead.";
                     return;
                 }
+
+                // The user typed coordinates by hand while waiting: keep theirs
+                if (latitudeTextBox.Text != latitudeBefore || longitudeTextBox.Text != longitudeBefore)
+                {
+                    locationInfoText.Text = "Found " + place.Name + ", but you edited the coordinates, so yours were kept.";
+                    return;
+                }
+
                 latitudeTextBox.Text = place.Latitude.ToString("0.000000");
                 longitudeTextBox.Text = place.Longitude.ToString("0.000000");
                 locationInfoText.Text = place.Name;
@@ -74,6 +88,7 @@ namespace TripMate.Windows
             finally
             {
                 findButton.IsEnabled = true;
+                saveButton.IsEnabled = true;
             }
         }
 
