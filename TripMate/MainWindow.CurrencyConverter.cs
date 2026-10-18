@@ -51,6 +51,8 @@ namespace TripMate
             {
                 convertButton.IsEnabled = false;
                 decimal rate = await currencyService.GetRateAsync(from, to);
+                // The currencies changed while waiting (e.g. another trip was chosen), so this result is out of date
+                if (fromCurrencyComboBox.Text != from || toCurrencyComboBox.Text != to) return;
                 convertResultText.Text = amount.ToString("0.00") + " " + from + " = " + (amount * rate).ToString("0.00") + " " + to;
                 rateInfoText.Text = "1 " + from + " = " + rate.ToString("0.####") + " " + to +
                                     (currencyService.LastRateDate.HasValue ? "  (ECB rate from " + currencyService.LastRateDate.Value.ToString("dd MMM yyyy") + ")" : "");
