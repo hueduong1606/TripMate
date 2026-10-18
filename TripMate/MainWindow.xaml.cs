@@ -112,7 +112,6 @@ namespace TripMate
             tripComboBox.SelectedItem = toSelect;
         }
 
-
         // Method to empty every tab when there is no trip left to show
         private void ClearTripViews()
         {

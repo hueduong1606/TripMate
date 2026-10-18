@@ -31,7 +31,6 @@ namespace TripMate
             tripSelected += ClearActivityForm;
         }
 
-
         // Method to empty the "Add an activity" form, so nothing from the old trip is reused
         private void ClearActivityForm()
         {
