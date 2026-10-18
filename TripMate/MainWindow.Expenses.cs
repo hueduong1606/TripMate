@@ -103,6 +103,12 @@ namespace TripMate
                 MessageBox.Show("Please enter an amount greater than 0.", "TripMate");
                 return;
             }
+            // Money is shared out in whole cents, so more than two decimal places cannot be split exactly
+            if (originalAmount != Math.Round(originalAmount, 2))
+            {
+                MessageBox.Show("Please enter the amount with at most two decimal places, e.g. 12.50.", "TripMate");
+                return;
+            }
             Member? payer = paidByComboBox.SelectedItem as Member;
             if (payer == null)
             {
