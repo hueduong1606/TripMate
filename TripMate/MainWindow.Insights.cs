@@ -23,9 +23,22 @@ namespace TripMate
             foreach (string type in new[] { "Hostel", "Airbnb", "Hotel" }) accommodationComboBox.Items.Add(type);
             accommodationComboBox.SelectedIndex = 0;
 
+            // Invalidate pending results whenever the prediction form changes.
+            predictDestinationComboBox.SelectionChanged += PredictionInputChanged;
+            accommodationComboBox.SelectionChanged += PredictionInputChanged;
+            predictDaysTextBox.TextChanged += PredictionInputChanged;
+            predictTravellersTextBox.TextChanged += PredictionInputChanged;
+            predictActivitiesTextBox.TextChanged += PredictionInputChanged;
+
             refreshTripViews += ShowCharts;
             tabChanged += InsightsTabChanged;
             tripSelected += ClearPrediction;
+        }
+
+        private void PredictionInputChanged(object sender, RoutedEventArgs e)
+        {
+            predictionRequestVersion++;
+            predictionResultText.Text = "";
         }
 
         // When the Insights tab is opened, redraw the charts and train the model the first time
@@ -170,15 +183,14 @@ namespace TripMate
             // Pick a supported destination; never reuse the previous trip's city
             string? known = costPredictor.Destinations.FirstOrDefault(d => d.Equals(currentTrip.Destination, StringComparison.OrdinalIgnoreCase));
             predictDestinationComboBox.SelectedItem = known;
-            if (known == null)
-            {
-                predictionResultText.Text = "This destination is not supported by the model. Choose a supported destination to estimate a different trip.";
-            }
-
             predictDaysTextBox.Text = currentTrip.NumberOfDays.ToString();
             predictTravellersTextBox.Text = Math.Max(1, currentTrip.Members.Count).ToString();
             int perDay = (int)Math.Round((double)currentTrip.Activities.Count / currentTrip.NumberOfDays);
             predictActivitiesTextBox.Text = Math.Clamp(perDay, 1, 4).ToString();
+            if (known == null)
+            {
+                predictionResultText.Text = "This destination is not supported by the model. Choose a supported destination to estimate a different trip.";
+            }
         }
 
         // Validate the form and predict the cost per person with the ML.NET model

@@ -1,4 +1,4 @@
-﻿using TripMate.Core.Models;
+using TripMate.Core.Models;
 
 /*
  Route optimisation for one day of the itinerary.
@@ -59,8 +59,8 @@ namespace TripMate.Core.Algorithms
             RouteResult<T> result = new RouteResult<T>();
 
             // Split the stops into the ones we can route and the ones we cannot (LINQ)
-            List<T> located = stops.Where(s => s.Latitude.HasValue && s.Longitude.HasValue).ToList();
-            result.Unlocated = stops.Where(s => !s.Latitude.HasValue || !s.Longitude.HasValue).ToList();
+            List<T> located = stops.Where(s => HasValidCoordinates(s)).ToList();
+            result.Unlocated = stops.Where(s => !HasValidCoordinates(s)).ToList();
 
             result.OriginalDistanceKm = RouteLength(located);
 
@@ -79,6 +79,15 @@ namespace TripMate.Core.Algorithms
             result.Route = route;
             result.OptimisedDistanceKm = RouteLength(route);
             return result;
+        }
+
+        // Reject missing, non-finite and out-of-range coordinates before routing.
+        private static bool HasValidCoordinates(IGeoLocated stop)
+        {
+            return stop.Latitude.HasValue && stop.Longitude.HasValue
+                && double.IsFinite(stop.Latitude.Value) && double.IsFinite(stop.Longitude.Value)
+                && stop.Latitude.Value >= -90 && stop.Latitude.Value <= 90
+                && stop.Longitude.Value >= -180 && stop.Longitude.Value <= 180;
         }
 
         // Method to calculate the total length of a route (start to finish, no return trip)
