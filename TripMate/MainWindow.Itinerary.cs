@@ -284,6 +284,11 @@ namespace TripMate
             Activity? selected = activitiesListView.SelectedItem as Activity;
             if (selected == null) return;
 
+            // Ask before removing, because this cannot be undone
+            MessageBoxResult answer = MessageBox.Show("Remove \"" + selected.Name + "\" from the itinerary?",
+                "TripMate", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (answer != MessageBoxResult.Yes) return;
+
             using (var context = new Context())
             {
                 Activity? toRemove = context.Activities.Find(selected.ActivityId);
