@@ -25,7 +25,6 @@ namespace TripMate
             foreach (TravelMode mode in TravelMode.GetAll()) travelModeComboBox.Items.Add(mode);
             travelModeComboBox.SelectedIndex = 0;
 
-
             // Redraw the itinerary whenever the trip data changes
             refreshTripViews += ShowItinerary;
             // Clear the "Add an activity" form when a different trip is chosen
@@ -298,8 +297,6 @@ namespace TripMate
                     context.SaveChanges();
                 }
             }
-
-
 
             // Renumber the rest of the day
             List<Activity> remaining = GetSelectedDayActivities().Where(a => a.ActivityId != selected.ActivityId).ToList();
