@@ -187,9 +187,9 @@ namespace TripMate
                 MessageBox.Show("Please enter the activity name.", "TripMate");
                 return;
             }
-            if (!int.TryParse(durationTextBox.Text, out int duration) || duration < 0)
+            if (!int.TryParse(durationTextBox.Text, out int duration) || duration < 0 || duration > 24 * 60)
             {
-                MessageBox.Show("Duration must be a whole number of minutes.", "TripMate");
+                MessageBox.Show("Duration must be a whole number of minutes between 0 and 1440.", "TripMate");
                 return;
             }
 
