@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using TripMate.Core.Models;
 using TripMate.Core.Services;
 

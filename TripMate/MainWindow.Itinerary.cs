@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using TripMate.Core.Algorithms;
 using TripMate.Core.Data;
@@ -15,6 +15,8 @@ namespace TripMate
 {
     public partial class MainWindow
     {
+        private int locationRequestVersion;
+
         private readonly RouteOptimiser routeOptimiser = new RouteOptimiser();
         private readonly IGeocodingService geocodingService = new GeocodingService();
 
@@ -25,23 +27,26 @@ namespace TripMate
             foreach (TravelMode mode in TravelMode.GetAll()) travelModeComboBox.Items.Add(mode);
             travelModeComboBox.SelectedIndex = 0;
 
+
             // Redraw the itinerary whenever the trip data changes
             refreshTripViews += ShowItinerary;
-            // Clear the "Add an activity" form when a different trip is chosen
             tripSelected += ClearActivityForm;
+            locationSearchTextBox.TextChanged += (_, _) => InvalidateLocationSearch();
+            activityNameTextBox.TextChanged += (_, _) => InvalidateLocationSearch();
+            latitudeTextBox.TextChanged += (_, _) => InvalidateLocationSearch();
+            longitudeTextBox.TextChanged += (_, _) => InvalidateLocationSearch();
         }
 
-
-        // Method to empty the "Add an activity" form, so nothing from the old trip is reused
+        // Clear all activity inputs and invalidate searches from the previous trip.
         private void ClearActivityForm()
         {
+            InvalidateLocationSearch();
             activityNameTextBox.Clear();
             locationSearchTextBox.Clear();
             latitudeTextBox.Clear();
             longitudeTextBox.Clear();
             notesTextBox.Clear();
             durationTextBox.Text = "60";
-            foundLocationText.Text = "";
         }
 
         // Method to fill the day list and show the activities of the selected day
@@ -114,6 +119,14 @@ namespace TripMate
             if (currentTrip != null) ShowDayActivities();
         }
 
+        // Invalidating a lookup also permits a new search while the old one finishes.
+        private void InvalidateLocationSearch()
+        {
+            locationRequestVersion++;
+            foundLocationText.Text = "";
+            findLocationButton.IsEnabled = true;
+        }
+
         // Method to look up an activity's location with OpenStreetMap
         private async void findLocationButton_Click(object sender, RoutedEventArgs e)
         {
@@ -127,14 +140,14 @@ namespace TripMate
                 return;
             }
 
+            int tripId = currentTrip.TripId;
+            int requestVersion = ++locationRequestVersion;
+
             // Add the destination to the search so "Central Station" finds the right city
             if (!query.Contains(currentTrip.Destination, StringComparison.OrdinalIgnoreCase))
             {
                 query = query + ", " + currentTrip.Destination;
             }
-
-            // Remember which trip this search is for
-            int tripId = currentTrip.TripId;
 
             try
             {
@@ -142,14 +155,7 @@ namespace TripMate
                 SetStatus("Searching for " + query + "...");
 
                 GeoPlace? place = await geocodingService.FindPlaceAsync(query);
-
-                // Ignore the result if a different trip was selected while searching
-                if (currentTrip == null || currentTrip.TripId != tripId)
-                {
-                    SetStatus("Location search cancelled");
-                    return;
-                }
-
+                if (requestVersion != locationRequestVersion || currentTrip?.TripId != tripId) return;
                 if (place == null)
                 {
                     foundLocationText.Text = "No match found. You can type the coordinates instead.";
@@ -157,6 +163,7 @@ namespace TripMate
                     return;
                 }
 
+                findLocationButton.IsEnabled = true;
                 latitudeTextBox.Text = place.Latitude.ToString("0.000000");
                 longitudeTextBox.Text = place.Longitude.ToString("0.000000");
                 foundLocationText.Text = place.Name;
@@ -164,12 +171,15 @@ namespace TripMate
             }
             catch (Exception ex)
             {
-                foundLocationText.Text = "Location search failed: " + ex.Message;
-                SetStatus("Location search failed");
+                if (requestVersion == locationRequestVersion && currentTrip?.TripId == tripId)
+                {
+                    foundLocationText.Text = "Location search failed: " + ex.Message;
+                    SetStatus("Location search failed");
+                }
             }
             finally
             {
-                findLocationButton.IsEnabled = true;
+                if (requestVersion == locationRequestVersion) findLocationButton.IsEnabled = true;
             }
         }
 
@@ -284,7 +294,6 @@ namespace TripMate
             Activity? selected = activitiesListView.SelectedItem as Activity;
             if (selected == null) return;
 
-            // Ask before removing, because this cannot be undone
             MessageBoxResult answer = MessageBox.Show("Remove \"" + selected.Name + "\" from the itinerary?",
                 "TripMate", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (answer != MessageBoxResult.Yes) return;
@@ -298,6 +307,8 @@ namespace TripMate
                     context.SaveChanges();
                 }
             }
+
+
 
             // Renumber the rest of the day
             List<Activity> remaining = GetSelectedDayActivities().Where(a => a.ActivityId != selected.ActivityId).ToList();

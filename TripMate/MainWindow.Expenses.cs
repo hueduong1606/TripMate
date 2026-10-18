@@ -98,15 +98,9 @@ namespace TripMate
                 MessageBox.Show("Please enter a description.", "TripMate");
                 return;
             }
-            if (!decimal.TryParse(expenseAmountTextBox.Text, out decimal originalAmount) || originalAmount <= 0)
+            if (!decimal.TryParse(expenseAmountTextBox.Text, out decimal originalAmount) || originalAmount <= 0 || decimal.Round(originalAmount, 2) != originalAmount)
             {
-                MessageBox.Show("Please enter an amount greater than 0.", "TripMate");
-                return;
-            }
-            // Money is shared out in whole cents, so more than two decimal places cannot be split exactly
-            if (originalAmount != Math.Round(originalAmount, 2))
-            {
-                MessageBox.Show("Please enter the amount with at most two decimal places, e.g. 12.50.", "TripMate");
+                MessageBox.Show("Please enter an amount greater than 0 with at most two decimal places.", "TripMate");
                 return;
             }
             Member? payer = paidByComboBox.SelectedItem as Member;
@@ -162,6 +156,7 @@ namespace TripMate
                     return;
                 }
 
+                // Store and split the same whole-cent amount.
                 amount = decimal.Round(amount, 2, MidpointRounding.AwayFromZero);
                 if (amount <= 0)
                 {
