@@ -60,11 +60,12 @@ namespace TripMate
 
             // Currencies the expense can be entered in
             List<string> currencies = new List<string> { currentTrip.HomeCurrency };
-            if (currentTrip.LocalCurrency != currentTrip.HomeCurrency) currencies.Add(currentTrip.LocalCurrency);
+            // Only offer the local currency first if live rates exist for it
+            bool useLocal = currentTrip.LocalCurrency != currentTrip.HomeCurrency && CurrencyService.IsSupported(currentTrip.LocalCurrency);
+            if (useLocal) currencies.Add(currentTrip.LocalCurrency);
             currencies.AddRange(CurrencyService.SupportedCurrencies.Where(c => !currencies.Contains(c)));
             expenseCurrencyComboBox.ItemsSource = currencies;
-            expenseCurrencyComboBox.SelectedIndex = currentTrip.LocalCurrency != currentTrip.HomeCurrency ? 1 : 0;
-
+            expenseCurrencyComboBox.SelectedIndex = useLocal ? 1 : 0;
             ShowBalances();
         }
 

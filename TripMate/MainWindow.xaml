@@ -268,7 +268,7 @@
                         <DockPanel>
                             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
                                 <Button x:Name="weatherButton" Content="Get Forecast" Click="weatherButton_Click"/>
-                                <TextBlock x:Name="weatherInfoText" VerticalAlignment="Center" Margin="6,0" Foreground="Gray"/>
+                                <TextBlock x:Name="weatherInfoText" VerticalAlignment="Center" Margin="6,0" Foreground="Gray" TextWrapping="Wrap"/>
                             </StackPanel>
                             <DataGrid x:Name="weatherDataGrid" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column">
                                 <DataGrid.Columns>
@@ -299,7 +299,7 @@
                                 <Button x:Name="addAttractionButton" Content="Add to Itinerary" Style="{StaticResource PrimaryButton}" Click="addAttractionButton_Click"/>
                                 <Button x:Name="openAttractionButton" Content="Read More" Click="openAttractionButton_Click"/>
                             </StackPanel>
-                            <TextBlock DockPanel.Dock="Bottom" x:Name="attractionInfoText" Foreground="Gray" Margin="4"/>
+                            <TextBlock DockPanel.Dock="Bottom" x:Name="attractionInfoText" Foreground="Gray" Margin="4" TextWrapping="Wrap"/>
                             <ListBox x:Name="attractionsListBox" MouseDoubleClick="openAttractionButton_Click"/>
                         </DockPanel>
                     </GroupBox>

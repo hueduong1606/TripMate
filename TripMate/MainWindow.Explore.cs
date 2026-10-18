@@ -177,7 +177,7 @@ namespace TripMate
                 // Only update the list if the user is still on the same trip
                 if (IsExploreRequestOutdated(requestedTripId, requestVersion)) return;
 
-                // Optional keyword filter, passed as a Predicate using an anonymous method
+                // Optional keyword filter: an anonymous method passed to LINQ Where
                 if (keyword != "")
                 {
                     found = AttractionService.FilterAttractions(found, delegate (Attraction a)

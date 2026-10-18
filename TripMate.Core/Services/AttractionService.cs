@@ -32,11 +32,11 @@ namespace TripMate.Core.Services
             return attractions;
         }
 
-        // Method to filter the results with any condition
+        // Method to filter the results with any condition, using LINQ Where
         // e.g. FilterAttractions(list, a => a.Name.Contains("Museum"))
-        public static List<Attraction> FilterAttractions(List<Attraction> attractions, Predicate<Attraction> condition)
+        public static List<Attraction> FilterAttractions(List<Attraction> attractions, Func<Attraction, bool> condition)
         {
-            return attractions.FindAll(condition);
+            return attractions.Where(condition).ToList();
         }
     }
 }

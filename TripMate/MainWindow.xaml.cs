@@ -171,6 +171,9 @@ namespace TripMate
         // A different trip was chosen in the dropdown: load it and tell the tabs
         private void tripComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            // Nothing is selected while the trip list is being refilled
+            if (tripComboBox.SelectedItem == null) return;
+
             ReloadCurrentTrip();
 
             if (currentTrip != null)

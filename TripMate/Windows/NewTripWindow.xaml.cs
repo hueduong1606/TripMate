@@ -119,6 +119,11 @@ namespace TripMate.Windows
                 MessageBox.Show("The end date must be on or after the start date.", "TripMate");
                 return;
             }
+            if ((endDatePicker.SelectedDate.Value - startDatePicker.SelectedDate.Value).TotalDays > 60)
+            {
+                MessageBox.Show("Trips can be at most 60 days long.", "TripMate");
+                return;
+            }
 
             // Split the comma separated names into fields, ignoring blanks and duplicates (LINQ)
             List<string> names = membersTextBox.Text.Split(',')

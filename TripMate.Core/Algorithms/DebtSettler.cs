@@ -179,6 +179,8 @@ namespace TripMate.Core.Algorithms
                 if (remaining.Length == 0 || remaining[creditor] <= 0) break;
 
                 long amount = Math.Min(remaining[creditor], -remaining[debtor]);
+                // Balances that do not add up to zero cannot be settled further
+                if (amount <= 0) break;
                 transfers.Add(new Transfer { From = names[debtor], To = names[creditor], Amount = amount / 100m });
                 remaining[creditor] -= amount;
                 remaining[debtor] += amount;
