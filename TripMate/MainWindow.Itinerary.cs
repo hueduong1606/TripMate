@@ -28,6 +28,21 @@ namespace TripMate
 
             // Redraw the itinerary whenever the trip data changes
             refreshTripViews += ShowItinerary;
+            // Clear the "Add an activity" form when a different trip is chosen
+            tripSelected += ClearActivityForm;
+        }
+
+
+        // Method to empty the "Add an activity" form, so nothing from the old trip is reused
+        private void ClearActivityForm()
+        {
+            activityNameTextBox.Clear();
+            locationSearchTextBox.Clear();
+            latitudeTextBox.Clear();
+            longitudeTextBox.Clear();
+            notesTextBox.Clear();
+            durationTextBox.Text = "60";
+            foundLocationText.Text = "";
         }
 
         // Method to fill the day list and show the activities of the selected day
@@ -119,15 +134,27 @@ namespace TripMate
                 query = query + ", " + currentTrip.Destination;
             }
 
+            // Remember which trip this search is for
+            int tripId = currentTrip.TripId;
+
             try
             {
                 findLocationButton.IsEnabled = false;
                 SetStatus("Searching for " + query + "...");
 
                 GeoPlace? place = await geocodingService.FindPlaceAsync(query);
+
+                // Ignore the result if a different trip was selected while searching
+                if (currentTrip == null || currentTrip.TripId != tripId)
+                {
+                    SetStatus("Location search cancelled");
+                    return;
+                }
+
                 if (place == null)
                 {
                     foundLocationText.Text = "No match found. You can type the coordinates instead.";
+                    SetStatus("No location found");
                     return;
                 }
 
@@ -139,6 +166,7 @@ namespace TripMate
             catch (Exception ex)
             {
                 foundLocationText.Text = "Location search failed: " + ex.Message;
+                SetStatus("Location search failed");
             }
             finally
             {
