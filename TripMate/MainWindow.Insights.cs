@@ -162,11 +162,18 @@ namespace TripMate
         // Fill the prediction form with the current trip's details
         private void fillFromTripButton_Click(object sender, RoutedEventArgs e)
         {
+            predictionRequestVersion++;
+            predictionResultText.Text = "";
+            predictDestinationComboBox.SelectedIndex = -1;
             if (currentTrip == null) return;
 
-            // Pick the destination if the model knows it
+            // Pick a supported destination; never reuse the previous trip's city
             string? known = costPredictor.Destinations.FirstOrDefault(d => d.Equals(currentTrip.Destination, StringComparison.OrdinalIgnoreCase));
-            if (known != null) predictDestinationComboBox.SelectedItem = known;
+            predictDestinationComboBox.SelectedItem = known;
+            if (known == null)
+            {
+                predictionResultText.Text = "This destination is not supported by the model. Choose a supported destination to estimate a different trip.";
+            }
 
             predictDaysTextBox.Text = currentTrip.NumberOfDays.ToString();
             predictTravellersTextBox.Text = Math.Max(1, currentTrip.Members.Count).ToString();
