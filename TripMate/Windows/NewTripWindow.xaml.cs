@@ -63,7 +63,6 @@ namespace TripMate.Windows
                 }
 
                 if (place == null)
-
                 {
                     locationText.Text = "City not found. You can still create the trip without it.";
                     return;

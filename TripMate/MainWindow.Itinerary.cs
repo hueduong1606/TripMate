@@ -37,6 +37,7 @@ namespace TripMate
             longitudeTextBox.TextChanged += (_, _) => InvalidateLocationSearch();
         }
 
+        // Method to empty the "Add an activity" form, so nothing from the old trip is reused
         // Clear all activity inputs and invalidate searches from the previous trip.
         private void ClearActivityForm()
         {

@@ -25,7 +25,7 @@ namespace TripMate.Core.Algorithms
         public string To { get; set; } = "";
         public decimal Amount { get; set; }
 
-        // Override the ToString() method to show "Ann pays Ben 12.50"
+        // Override the ToString() method to show "Ann pays Ben $12.50"
         public override string ToString()
         {
             return From + " pays " + To + " " + Amount.ToString("0.00");
